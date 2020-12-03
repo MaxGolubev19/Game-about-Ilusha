@@ -1,37 +1,26 @@
 import pygame as pg
+import random
 
 
 class Board:
-    def __init__(self, w, h, screen):
-        self.w, self.h = w, h
+    def __init__(self, w, h, maxSize, cellSize, screen):
         self.screen = screen
-        self.left = 10
-        self.top = 10
-        self.cell_size = 30
-
-    def set_view(self, left, top, cell_size):
-        self.left = left
-        self.top = top
-        self.cell_size = cell_size
+        self.w, self.h = w, h
+        self.left = -maxSize
+        self.top = -maxSize
+        self.cellSize = cellSize
 
     def render(self):
-        for y in range(self.h):
-            for x in range(self.w):
+        x0 = -(abs(self.left) % self.cellSize)
+        y0 = -(abs(self.top) % self.cellSize)
+        for y in range(y0, self.h, self.cellSize):
+            for x in range(x0, self.w, self.cellSize):
                 self.drawCell(x, y)
-
-    def get_click(self, mouse_pos):
-        pass
-
+                
     def drawCell(self, x, y):
-        size = self.cell_size
-        x = self.left + x * size
-        y = self.top + y * size
-        pg.draw.rect(self.screen, 'white', (x, y, size, size), 1)
+        size = self.cellSize
+        pg.draw.rect(self.screen, 'black', (x, y, size, size), 1)
 
-    def get_cell(self, pos):
-        x, y = pos
-        x = (x - self.left) // self.cell_size
-        y = (y - self.top) // self.cell_size
-        if 0 > x or x + 1 > self.w or 0 > y or y + 1 > self.h:
-            return None
-        return (x, y)
+    def getClick(self, newPos, myPos):
+        x, y = newPos
+        x0, y0 = myPos 
