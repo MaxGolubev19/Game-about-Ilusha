@@ -11,6 +11,7 @@ class Field:
         self.cellSize = cellSize
 
     def render(self):
+        self.screen.fill('green')
         x0 = -(abs(self.left) % self.cellSize)
         y0 = -(abs(self.top) % self.cellSize)
         for y in range(y0, self.h, self.cellSize):

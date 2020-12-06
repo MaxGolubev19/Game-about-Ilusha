@@ -10,6 +10,7 @@ class Hero:
         
         self.speed = 5
         self.cSpeed = 1
+        self.color = 'yellow'
         
         self.endMoving()
 
@@ -17,7 +18,7 @@ class Hero:
         return (self.x, self.y)
 
     def draw(self):
-        pg.draw.circle(self.screen, 'red', self.drawPos, 20)        
+        pg.draw.circle(self.screen, self.color, self.drawPos, 20)        
 
     def moving(self, pressed):
         self.edMove(pressed)
@@ -86,13 +87,13 @@ class Hero:
 
     def autoMoving(self):
         if self.time > 0:
-            self.field.left -= self.xStep * self.cSpeed
-            self.field.top -= self.yStep * self.cSpeed
+            self.field.left += self.xStep * self.cSpeed
+            self.field.top += self.yStep * self.cSpeed
             self.x += self.xStep * self.cSpeed
             self.y += self.yStep * self.cSpeed
             self.time -= self.cSpeed
         else:
-            self.field.left -= self.xEnd
+            self.field.left += self.xEnd
             self.x += self.xEnd
             self.field.top -= self.yEnd
             self.y += self.yEnd
