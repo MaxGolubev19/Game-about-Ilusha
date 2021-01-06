@@ -1,23 +1,38 @@
 import pygame as pg
-import random
+from Start import my
 
 
-class Field:
-    def __init__(self, size, maxSize, cellSize, screen):
-        self.screen = screen
-        self.w, self.h = size
-        self.left = -maxSize
-        self.top = -maxSize
-        self.cellSize = cellSize
+class Cell(pg.sprite.Sprite):
 
-    def render(self):
-        self.screen.fill('green')
-        x0 = -(abs(self.left) % self.cellSize)
-        y0 = -(abs(self.top) % self.cellSize)
-        for y in range(y0, self.h, self.cellSize):
-            for x in range(x0, self.w, self.cellSize):
-                self.drawCell(x, y)
-                
-    def drawCell(self, x, y):
-        size = self.cellSize
-        pg.draw.rect(self.screen, 'black', (x, y, size, size), 1)
+    image = pg.image.load('data/grass.png')
+    
+    def __init__(self, bg_sprites, x, y):
+        super().__init__(bg_sprites)
+        image = Cell.image
+        self.rect = self.image.get_rect().move(x, y)
+
+
+def render():
+    # Рисование фона
+    bg_sprites = pg.sprite.Group()
+    for x in range(my.stepX, my.w, my.cellSize):
+        for y in range(my.stepY, my.h, my.cellSize):
+            cell = Cell(bg_sprites, x, y)
+    bg_sprites.draw(my.screen)
+            
+ 
+class Camera:
+    def __init__(self):
+        self.dx = 0
+        self.dy = 0
+
+    def apply(self, obj):
+        obj.rect.x -= self.dx
+        obj.rect.y -= self.dy
+
+    def update(self, obj):
+        self.dx = obj.rect.x - my.hPos[0]
+        self.dy = obj.rect.y - my.hPos[1]
+        my.stepX = (my.stepX - self.dx) % my.cellSize - my.cellSize
+        my.stepY = (my.stepY - self.dy) % my.cellSize - my.cellSize
+    

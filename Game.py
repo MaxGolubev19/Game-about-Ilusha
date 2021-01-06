@@ -1,58 +1,35 @@
 import pygame as pg
-from Field import Field
+from Start import my
 from Hero import Hero
 from Evil import Evil
-
-
-def crGame():
-    global screen, field, clock
-    pg.init()
-    pg.display.set_caption("Проект")
-    screen = pg.display.set_mode(size)
-    field = Field(size, maxSize, cellSize, screen)
-    clock = pg.time.Clock()
+from Field import render
 
 
 def refresh():
-    field.render()
-    hero.draw()
-    evil.draw(hero.getPos(), hPos)
+    # Обновление экрана
+    my.screen.fill('black')
+    render()
+    my.all_sprites.draw(my.screen)
+    my.player_group.draw(my.screen)
     pg.display.flip()
+    my.clock.tick(my.fps)
     
 
-def crHeroes():
-    global hero, evil
-    hero = Hero(hPos, field, screen)
-    evil = Evil((100, 100), field, screen)
+player = Hero()
+refresh()
+
+while my.running:
     
-# Параметры поля
-size = w, h = 1000, 600
-maxSize = 1000000
-cellSize = 40
-
-# Параметры игры
-running = True
-fps = 100
-hPos = w // 2, h // 2
-
-# Создание игры
-crGame()
-crHeroes()
-
-#Игровой цикл
-while running:
-    pressed = pg.key.get_pressed()
-    hero.moving(pressed)
-    evil.moving(hero.getPos())
+    player.move()
 
     for event in pg.event.get():
         if event.type == pg.QUIT:
-            running = False
-        if event.type == pg.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                hero.startMoving(event.pos)
-    
+            my.running = False
+
+    my.camera.update(player)
+    for sprite in my.all_sprites:
+        my.camera.apply(sprite)
+
     refresh()
-    clock.tick(fps)
 
 pg.quit()
