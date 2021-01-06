@@ -12,6 +12,7 @@ class Hero(pg.sprite.Sprite):
         self.x = my.hPos[0]
         self.y = my.hPos[1]
         self.rect = self.image.get_rect().move(self.x, self.y)
+        self.mask = pg.mask.from_surface(self.image)
         self.speed = 0.1
 
     def move(self):
@@ -26,13 +27,28 @@ class Hero(pg.sprite.Sprite):
         # Перемещение персонажа
         if pressed[pg.K_w] or pressed[pg.K_UP]:
             self.rect.y -= my.cellSize * speed
+            if self.cant():
+                self.rect.y += my.cellSize * speed
         if pressed[pg.K_s] or pressed[pg.K_DOWN]:
             self.rect.y += my.cellSize * speed
+            if self.cant():
+                self.rect.y -= my.cellSize * speed
         if pressed[pg.K_a] or pressed[pg.K_LEFT]:
             self.rect.x -= my.cellSize * speed
+            if self.cant():
+                self.rect.x += my.cellSize * speed
         if pressed[pg.K_d] or pressed[pg.K_RIGHT]:
             self.rect.x += my.cellSize * speed
+            if self.cant():
+                self.rect.x -= my.cellSize * speed
 
+        if pressed[pg.K_e]:
+            print('e')
+
+    def cant(self):
+        return pg.sprite.spritecollideany(self, my.objects)
+        
+    
     """            
     def startMoving(self, pos, speed):
         self.auto = True
