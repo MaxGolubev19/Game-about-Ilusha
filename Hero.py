@@ -4,7 +4,9 @@ from Start import my
 
 class Hero(pg.sprite.Sprite):
 
-    image = pg.image.load('data/hero.png')
+    image = pg.image.load('data/hero/right.png')
+    imageRight = pg.image.load('data/hero/right.png')
+    imageLeft = pg.image.load('data/hero/left.png')
     
     def __init__(self):
         super().__init__(my.player_group, my.all_sprites)
@@ -14,6 +16,7 @@ class Hero(pg.sprite.Sprite):
         self.rect = self.image.get_rect().move(self.x, self.y)
         self.mask = pg.mask.from_surface(self.image)
         self.speed = 0.1
+        self.fight = False
 
     def move(self):
         # Получение команд клавиатуры
@@ -34,63 +37,53 @@ class Hero(pg.sprite.Sprite):
             if self.cant():
                 self.rect.y -= my.cellSize * speed
         if pressed[pg.K_a] or pressed[pg.K_LEFT]:
+            self.image = Hero.imageLeft
             self.rect.x -= my.cellSize * speed
             if self.cant():
                 self.rect.x += my.cellSize * speed
         if pressed[pg.K_d] or pressed[pg.K_RIGHT]:
+            self.image = Hero.imageRight
             self.rect.x += my.cellSize * speed
             if self.cant():
                 self.rect.x -= my.cellSize * speed
 
+        # Взаимодействие
         if pressed[pg.K_e]:
-            print('e')
+            inv = Invisible(self.x, self.y)
+            obj = inv.search()
+            if obj:
+                obj.do()
+                
 
     def cant(self):
-        return pg.sprite.spritecollideany(self, my.objects)
-        
+        return (pg.sprite.spritecollideany(self, my.objects) or
+                pg.sprite.spritecollideany(self, my.evil_group))
+
+
+class Invisible(pg.sprite.Sprite):
+
+    image = pg.image.load('data/grass.png')
     
-    """            
-    def startMoving(self, pos, speed):
-        self.auto = True
-        x, y = pos
-        sx = x - self.rect.x
-        sy = y - self.rect.y
-        sx0, sy0 = abs(sx), abs(sy)
-        self.time = max(sx0, sy0) // speed
-        if sx:
-            xSign = sx // sx0
-            self.xStep = sx0 // self.time * xSign
-            self.xEnd = sx0 % self.time * xSign
-        if sy:
-            ySign = sy // sy0
-            self.yStep = sy0 // self.time * ySign
-            self.yEnd = sy0 % self.time * ySign
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = Invisible.image
+        self.x = x
+        self.y = y
+
+    def search(self):
+        cells = [(self.x + my.cellSize, self.y),
+                 (self.x - my.cellSize, self.y),
+                 (self.x, self.y - my.cellSize),
+                 (self.x, self.y + my.cellSize)]
         
-    def endMoving(self):
-        self.auto = False
-        self.time = 0
-        self.xStep = 0
-        self.xEnd = 0
-        self.yStep = 0
-        self.yEnd = 0        
+        for x, y in cells:
+            obj = self.check(x, y)
+            if obj:
+                return obj
 
-    def autoMoving(self):
-        if self.time > 0:
-            self.field.left -= self.xStep * self.cSpeed
-            self.field.top -= self.yStep * self.cSpeed
-            self.rect.x += self.xStep * self.cSpeed
-            self.rect.y += self.yStep * self.cSpeed
-            self.time -= self.cSpeed
-        else:
-            self.field.left += self.xEnd
-            self.field.top -= self.yEnd
-            self.rect.x += self.xEnd
-            self.rect.y += self.yEnd
-            self.endMoving()
-    """
-
-
-
+    def check(self, x, y):
+        self.rect = self.image.get_rect().move(x, y)
+        return pg.sprite.spritecollideany(self, my.objects)
 
 
 

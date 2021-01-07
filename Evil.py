@@ -1,58 +1,65 @@
 import pygame as pg
+from Start import my
 
 
-class Evil:
-    def __init__(self, pos, field, screen):
-        self.x, self.y = pos
-        self.field = field
-        self.screen = screen
+class Pig(pg.sprite.Sprite):
 
-        self.speed = 3
-        self.disRun = 500
-        self.disFight = 60
-        self.color = 'blue'
+    image = pg.image.load('data/pig/right.png')
+    imageRight = pg.image.load('data/pig/right.png')
+    imageLeft = pg.image.load('data/pig/left.png')
+    imageAttackRight = pg.image.load('data/pig/rightAttack.png')
+    imageAttackLeft = pg.image.load('data/pig/leftAttack.png')
+    imageDied = pg.image.load('data/pig/rightDied.png')    
+    
+    def __init__(self):
+        super().__init__(my.evil_group, my.all_sprites)
+        self.image = Pig.image
+        self.x = my.hPos[0] + 100
+        self.y = my.hPos[1] + 100
+        self.rect = self.image.get_rect().move(self.x, self.y)
+        self.speed = 0.09 * my.cellSize
+        self.disFight = 2 * my.cellSize
 
-        self.fight = False
-        
-    def draw(self, hPos, hDrawPos):
-        hx, hy = hPos
-        xSpace = hx - self.x
-        ySpace = hy - self.y
-        hx, hy = hDrawPos
-        pos = self.field.w // 2 + xSpace, self.field.h // 2 + ySpace
-        pg.draw.circle(self.screen, self.color, pos, 20)
-
-    def moving(self, hPos):
-        move, fight = self.check(hPos)
-        if fight:
-            self.startFight()
+    def move(self):
+        if self.checkFight():
+            my.fight = True
+            self.fight()
         else:
-            self.endFight()
-        if move:
-            x, y = hPos
-            sx = x - self.x
-            sy = y - self.y
-            sx0, sy0 = abs(sx), abs(sy)
-            if sx:
-                xSign = sx // sx0
-                self.x += self.speed * xSign
-            if sy:
-                ySign = sy // sy0
-                self.y += self.speed * ySign
+            my.fight = False
+            self.moving()
+            
+    def checkFight(self):
+        return (self.disFight >= abs(self.rect.x - my.hPos[0]) and
+                self.disFight >= abs(self.rect.y - my.hPos[1]))
 
-    def check(self, hPos):
-        x, y = hPos
-        return (self.disFight < abs(self.x - x) <= self.disRun or
-                self.disFight < abs(self.y - y) <= self.disRun,
-                self.disFight >= abs(self.x - x) and
-                self.disFight >= abs(self.y - y))
+    def moving(self):
+        x, y = my.hPos
+        if y > self.rect.y:
+            self.rect.y += self.speed
+        if y < self.rect.y:
+            self.rect.y -= self.speed
+        if x > self.rect.x:
+            self.image = Pig.imageRight
+            self.rect.x += self.speed
+        if x < self.rect.x:
+            self.image = Pig.imageLeft
+            self.rect.x -= self.speed
 
-    def startFight(self):
-        self.fight = True
-        self.color = 'red'
-
-    def endFight(self):
-        self.fight = False
-        self.color = 'blue'
-
+    def fight(self):
+        x, y = my.hPos
+        if (abs(self.rect.x - x) < my.cellSize and
+            abs(self.rect.y - y) < my.cellSize):
+            print('Oy')
+            return
+            
+        if y > self.rect.y:
+            self.rect.y += self.speed * 2
+        if y < self.rect.y:
+            self.rect.y -= self.speed * 2
+        if x > self.rect.x:
+            self.image = Pig.imageAttackRight
+            self.rect.x += self.speed * 2
+        if x < self.rect.x:
+            self.image = Pig.imageAttackLeft
+            self.rect.x -= self.speed * 2
     

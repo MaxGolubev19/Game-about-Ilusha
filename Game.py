@@ -1,7 +1,7 @@
 import pygame as pg
 from Start import my
 from Hero import Hero
-from Evil import Evil
+from Evil import Pig
 from Field import render
 
 

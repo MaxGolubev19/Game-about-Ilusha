@@ -9,7 +9,7 @@ class Object(pg.sprite.Sprite):
         self.rect = self.image.get_rect().move(x * my.cellSize, y * my.cellSize)
 
     def do(self):
-        print('do!')
+        print(self.__class__)
         
 
 class Water(Object):
@@ -29,9 +29,8 @@ class Stone(Object):
 
 class Chest(Object):
 
-    image = pg.image.load('data/chest.png')
-    image2 = pg.image.load('data/chest_open.png')
+    image = pg.image.load('data/chest/closed.png')
+    image2 = pg.image.load('data/chest/open.png')
 
     def do(self):
-        print('open')
-        self.image = Chect.image2
+        self.image = Chest.image2

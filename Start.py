@@ -31,11 +31,13 @@ class Start:
         self.screen = pg.display.set_mode(self.size)
         self.all_sprites = pg.sprite.Group()
         self.player_group = pg.sprite.Group()
+        self.evil_group = pg.sprite.Group()
         self.objects = pg.sprite.Group()
         
         self.camera = Camera()
         self.clock = pg.time.Clock()
         self.running = True
+        self.fight = False
 
     def crWater(self):
         from Objects import Water
