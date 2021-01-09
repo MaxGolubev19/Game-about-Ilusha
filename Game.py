@@ -11,6 +11,7 @@ def refresh():
     render()
     my.all_sprites.draw(my.screen)
     my.player_group.draw(my.screen)
+    my.inv.draw()
     pg.display.flip()
     my.clock.tick(my.fps)
     

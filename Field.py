@@ -19,6 +19,7 @@ def render():
         for y in range(my.stepY, my.h, my.cellSize):
             cell = Cell(bg_sprites, x, y)
     bg_sprites.draw(my.screen)
+    
             
  
 class Camera:
@@ -35,4 +36,26 @@ class Camera:
         self.dy = obj.rect.y - my.hPos[1]
         my.stepX = (my.stepX - self.dx) % my.cellSize - my.cellSize
         my.stepY = (my.stepY - self.dy) % my.cellSize - my.cellSize
+
+
+class Inventory:
+    def __init__(self):
+        self.counts = {}
+        self.place = 0
+
+    def append(self, obj):
+        print(obj)
+        if self.counts.get(obj, False):
+            self.counts[obj] += 1
+        else:
+            self.counts[obj] = 1
+            obj(self.place, inv=True)
+            self.place += 1
+        
+    def draw(self):
+        pg.draw.rect(my.screen, 'black', (0, my.h - my.invSize, my.w, my.invSize))
+        my.inventory.draw(my.screen)
+            
+        
+    
     

@@ -6,8 +6,10 @@ class Start:
     def __init__(self):
         # Параметры игры
         self.cellSize = 50
+        self.invSize = 50
         self.fps = 100
         self.length = 30
+        self.maxHealth = 5
         self.size = self.w, self.h = 1000, 600
         self.hPos = (self.w // 2 - self.cellSize // 2,
                      self.h // 2 - self.cellSize // 2)
@@ -24,7 +26,7 @@ class Start:
 
     def crGame(self):
         # Создание игры
-        from Field import Camera
+        from Field import Camera, Inventory
         
         pg.init()
         pg.display.set_caption('Проект')
@@ -33,8 +35,10 @@ class Start:
         self.player_group = pg.sprite.Group()
         self.evil_group = pg.sprite.Group()
         self.objects = pg.sprite.Group()
+        self.inventory = pg.sprite.Group()
         
         self.camera = Camera()
+        self.inv = Inventory()
         self.clock = pg.time.Clock()
         self.running = True
         self.fight = False
@@ -56,11 +60,19 @@ class Start:
         self.crObject(Tree, self.length)
         self.crObject(Chest, self.length // 5)
 
-    def crObject(self, name, count):
-        for i in range(count):
+    def crObject(self, name, allCount):
+        count = 0
+        while count != allCount:
             x = randint(-self.length, self.length)
             y = randint(-self.length, self.length)
-            name(x, y)
+            obj = name(x, y)
+            if self.cant(obj):
+                self.objects.remove(obj)
+            else:
+                count += 1
+
+    def cant(self, obj):
+        return obj != pg.sprite.spritecollideany(obj, my.objects)
             
 
 my = Start()
