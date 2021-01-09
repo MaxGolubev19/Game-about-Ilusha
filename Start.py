@@ -19,15 +19,10 @@ class Start:
     def create(self):
         self.crGame()
         self.crWater()
-        try:
-            self.crObjects()
-        except Exception as e:
-            print(e)
+        self.crObjects()
 
     def crGame(self):
-        # Создание игры
-        from Field import Camera, Inventory
-        
+        # Создание игры        
         pg.init()
         pg.display.set_caption('Проект')
         self.screen = pg.display.set_mode(self.size)
@@ -36,6 +31,8 @@ class Start:
         self.evil_group = pg.sprite.Group()
         self.objects = pg.sprite.Group()
         self.inventory = pg.sprite.Group()
+
+        from Field import Camera, Inventory
         
         self.camera = Camera()
         self.inv = Inventory()

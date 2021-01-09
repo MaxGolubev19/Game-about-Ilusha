@@ -26,11 +26,19 @@ while my.running:
     for event in pg.event.get():
         if event.type == pg.QUIT:
             my.running = False
-
+        if event.type == pg.MOUSEBUTTONDOWN:
+            x, y = event.pos
+            if y > my.h - my.invSize:
+                try:
+                    my.inv.choose(x)
+                except Exception as e:
+                    print(e)
+    
     my.camera.update(player)
     for sprite in my.all_sprites:
         my.camera.apply(sprite)
 
-    refresh()
+    if my.running:
+        refresh()
 
 pg.quit()

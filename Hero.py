@@ -22,6 +22,7 @@ class Hero(pg.sprite.Sprite):
         
         self.speed = 0.1
         self.fight = False
+        self.gun = None
 
     def checkPos(self):
         objs = pg.sprite.spritecollide(self, my.objects, True)
@@ -32,6 +33,8 @@ class Hero(pg.sprite.Sprite):
         [Life(self, i * 30, 0) for i in range(my.maxHealth)]   
 
     def move(self):
+        self.gun = my.inv.gun
+        
         # Получение команд клавиатуры
         pressed = pg.key.get_pressed()
 
@@ -91,20 +94,20 @@ class Invisible(pg.sprite.Sprite):
         self.x = x
         self.y = y
 
-    def search(self):
+    def search(self, group=my.objects):
         cells = [(self.x + my.cellSize, self.y),
                  (self.x - my.cellSize, self.y),
                  (self.x, self.y - my.cellSize),
                  (self.x, self.y + my.cellSize)]
         
         for x, y in cells:
-            obj = self.check(x, y)
+            obj = self.check(x, y, group)
             if obj:
                 return obj
 
-    def check(self, x, y):
+    def check(self, x, y, group):
         self.rect = self.image.get_rect().move(x, y)
-        return pg.sprite.spritecollideany(self, my.objects)
+        return pg.sprite.spritecollideany(self, group)
 
 
 
