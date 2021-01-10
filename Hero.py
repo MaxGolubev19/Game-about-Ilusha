@@ -145,8 +145,8 @@ class Hero(pg.sprite.Sprite):
             my.inv.remove(self.hand)
             AppleBall(self.direction)
         elif self.hand.__class__ in knifes:
+            self.fight(self.hand.power)
             if randint(1, 10) == 1:
-                self.fight(self.hand.power)
                 my.inv.remove(self.hand)
         elif self.hand.__class__ is Heart:
             if self.addLife():

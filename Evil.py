@@ -113,12 +113,12 @@ class Pig(Evil):
 
 class Ghost(Evil):
 
-    image = pg.image.load('data/pig/right.png')
-    imageRight = pg.image.load('data/pig/right.png')
-    imageLeft = pg.image.load('data/pig/left.png')
-    imageAttackRight = pg.image.load('data/pig/rightAttack.png')
-    imageAttackLeft = pg.image.load('data/pig/leftAttack.png')
-    imageDied = pg.image.load('data/pig/rightDied.png')
+    image = pg.image.load('data/ghost/right.png')
+    imageRight = pg.image.load('data/ghost/right.png')
+    imageLeft = pg.image.load('data/ghost/left.png')
+    imageAttackRight = pg.image.load('data/ghost/right.png')
+    imageAttackLeft = pg.image.load('data/ghost/left.png')
+    imageDied = pg.image.load('data/ghost/rightDied.png')
 
     speed = 0.05 * my.cellSize
     disRun = 10 * my.cellSize
@@ -143,7 +143,10 @@ class Ghost(Evil):
 
 class MagicBall(pg.sprite.Sprite):
 
-    image = pg.image.load('data/apple.png')
+    imageUp = pg.image.load('data/fireball/up.png')
+    imageDown = pg.image.load('data/fireball/down.png')
+    imageRight = pg.image.load('data/fireball/right.png')
+    imageLeft = pg.image.load('data/fireball/left.png')
     
     def __init__(self, evil, direction):
         super().__init__(my.evil_group, my.all_sprites)
@@ -152,18 +155,22 @@ class MagicBall(pg.sprite.Sprite):
         self.power = 1
         self.evil = evil
 
-        self.image = self.image
+        self.image = MagicBall.imageUp
         self.rect = self.image.get_rect().move(self.evil.rect.x, self.evil.rect.y)
 
     def move(self):
         if self.direction == 'U':
             self.rect.y -= self.speed * my.cellSize
+            self.image = MagicBall.imageUp
         elif self.direction == 'D':
             self.rect.y += self.speed * my.cellSize
+            self.image = MagicBall.imageDown
         elif self.direction == 'R':
             self.rect.x += self.speed * my.cellSize
+            self.image = MagicBall.imageRight
         elif self.direction == 'L':
             self.rect.x -= self.speed * my.cellSize
+            self.image = MagicBall.imageLeft
 
         obj = pg.sprite.spritecollideany(self, my.player_group)
         if obj is my.player:
