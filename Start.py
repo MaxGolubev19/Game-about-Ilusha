@@ -14,8 +14,10 @@ class Start:
         self.size = self.w, self.h = 1000, 600
         self.hPos = (self.w // 2 - self.cellSize // 2,
                      self.h // 2 - self.cellSize // 2)
-        self.stepX = 0
-        self.stepY = 0
+
+        pg.init()
+        pg.display.set_caption(self.title)
+        self.screen = pg.display.set_mode(self.size)
 
     def create(self, text):
         self.crGame()
@@ -25,23 +27,21 @@ class Start:
 
     def crGame(self):
         # Создание игры
-        pg.init()
-        pg.display.set_caption(self.title)
-        self.screen = pg.display.set_mode(self.size)
         self.all_sprites = pg.sprite.Group()
         self.player_group = pg.sprite.Group()
         self.evil_group = pg.sprite.Group()
         self.objects = pg.sprite.Group()
         self.inventory = pg.sprite.Group()
-        my.pressed = []
+        self.pressed = []
 
         from Field import Camera, Inventory
-        
+
+        self.stepX = 0
+        self.stepY = 0        
         self.camera = Camera()
         self.inv = Inventory()
         self.clock = pg.time.Clock()
         self.running = True
-        self.fight = False
 
     def crWater(self):
         from Objects import Water
@@ -116,10 +116,9 @@ class Start:
 
     def endGame(self):
         self.clock.tick(5)
+        self.running = False
         self.create(['Вы проиграли!', '', 'Нажмите любую кнопку, чтобы начать новую игру'])
         
 
 my = Start()
-pg.init()
-pg.display.set_caption(my.title)
 my.create(['Игра', '', 'Нажмите любую кнопку, чтобы начать игру'])

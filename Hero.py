@@ -192,9 +192,7 @@ class Invisible(pg.sprite.Sprite):
             self.x += my.cellSize
         elif direction == 'L':
             self.x -= my.cellSize
-        obj = self.check(group)
-        if obj:
-            return obj
+        return self.check(group)
 
     def check(self, group):
         self.rect = self.image.get_rect().move(self.x, self.y)
