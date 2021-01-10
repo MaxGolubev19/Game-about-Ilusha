@@ -55,7 +55,7 @@ class Object(pg.sprite.Sprite):
         self.rect = self.image.get_rect().move(x * my.cellSize, y * my.cellSize)
 
     def do(self):
-        print(self.__class__)
+        pass
 
     def trash(self):
         my.objects.remove(self)

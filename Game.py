@@ -14,7 +14,6 @@ def refresh():
     my.inv.draw()
     pg.display.flip()
     my.clock.tick(my.fps)
-    
 
 refresh()
 

@@ -26,6 +26,7 @@ class Hero(pg.sprite.Sprite):
 
         self.checkPos()
         self.crHealth()
+        self.endAutoMoving()
 
     def checkPos(self):
         objs = pg.sprite.spritecollide(self, my.objects, True)
@@ -51,6 +52,9 @@ class Hero(pg.sprite.Sprite):
             my.endGame()
 
     def move(self):
+        if self.auto:
+            self.autoMoving()
+            return 0
         self.hand = my.inv.obj
 
         # Установка скорости
@@ -84,12 +88,51 @@ class Hero(pg.sprite.Sprite):
             if self.cant():
                 self.rect.x -= my.cellSize * speed
 
+    def autoMoving(self):
+        if self.time > 0:
+            xStep = self.xStep
+            yStep = self.yStep
+        else:
+            xStep = self.xEnd
+            yStep = self.yEnd
+        self.rect.x -= xStep
+        self.rect.y -= yStep
+        if self.cant():
+            self.rect.x += self.xStep
+            self.rect.y += self.yStep
+            self.endAutoMoving()
+        if not self.time:
+            self.endAutoMoving()
+
+    def startAutoMoving(self, x, y):
+        self.auto = True
+        sx = my.hPos[0] - x
+        sy = my.hPos[1] - y
+        sx0, sy0 = abs(sx), abs(sy)
+        self.time = int(max(sx0, sy0) / (self.speed * my.cellSize))
+        if sx:
+            xSign = sx // sx0
+            self.xStep = (sx0 // self.time) * xSign
+            self.xEnd = (sx0 % self.time) * xSign
+        if sy:
+            ySign = sy // sy0
+            self.yStep = (sy0 // self.time) * ySign
+            self.yEnd = (sy0 % self.time) * ySign
+
+    def endAutoMoving(self):
+        self.auto = False
+        self.time = 0
+        self.stepX = 0
+        self.xEnd = 0
+        self.stepY = 0
+        self.yEnd = 0   
+
     def used(self):
-        if my.pressed[pg.K_e]:
-            inv = Invisible(self.x, self.y)
-            obj = inv.search(self.direction)
-            if obj:
-                obj.do()
+        inv = Invisible(self.x, self.y)
+        obj = inv.search(self.direction)
+        print(obj)
+        if obj:
+            obj.do()
                 
     def cant(self):
         return (pg.sprite.spritecollideany(self, my.objects) or
