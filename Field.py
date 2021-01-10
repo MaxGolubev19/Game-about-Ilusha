@@ -45,25 +45,42 @@ class Inventory:
         self.font = pg.font.Font(None, self.textSize)
         
         self.counts = {}
+        self.queue = []
         self.place = 0
         self.choice = -1
-        self.gun = None
+        self.obj = None
 
-    def append(self, obj):
-        if self.counts.get(obj, False):
-            self.counts[obj][1] += 1
+    def append(self, name):
+        if self.counts.get(name, False):
+            self.counts[name] += 1
         else:
-            self.counts[obj] = [self.place, 1]
-            obj(self.place, inv=True)
+            self.queue.append(name)
+            self.counts[name] = 1
+            name(self.place)
             self.place += 1
+
+    def remove(self, obj):
+        name = obj.__class__
+        self.counts[name] -= 1
+        if not self.counts[name]:
+            for sprite in my.inventory:
+                if sprite.rect.x // my.cellSize > self.queue.index(name):
+                    sprite.rect.x -= my.cellSize
+            self.counts.pop(name)
+            self.queue.remove(name)
+            self.place -= 1
+            my.inventory.remove(obj)
+            self.choice = min(self.choice, self.place - 1)
+            self.search()
         
     def draw(self):
         pg.draw.rect(my.screen, 'black', (0, my.h - my.invSize, my.w, my.invSize))
         my.inventory.draw(my.screen)
         pg.draw.rect(my.screen, 'white', (self.choice * my.cellSize, my.h - my.invSize,
                                           my.cellSize, my.invSize), 3)
-        for obj in self.counts:
-            place, count = self.counts[obj]
+        for place in range(self.place):
+            obj = self.queue[place]
+            count = self.counts[obj]
             text = self.font.render(f"{count}", True, 'red')
             w, h = text.get_width(), text.get_height()
             x, y = (place + 1) * my.cellSize - w, my.h - h
@@ -73,9 +90,16 @@ class Inventory:
         place = x // my.cellSize
         if place < self.place:
             self.choice = place
-            inv = Invisible((place - 1) * my.cellSize, my.h - my.invSize)
-            self.gun = inv.search(group=my.inventory)
-        
+            self.search()
+
+    def next(self):
+        if self.place:
+            self.choice = (self.choice + 1) % self.place
+            self.search()
+
+    def search(self):
+        inv = Invisible((self.choice - 1) * my.cellSize, my.h - my.invSize)
+        self.obj = inv.search('R', group=my.inventory)
         
             
         

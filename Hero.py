@@ -1,28 +1,31 @@
 import pygame as pg
+from random import randint
 from Start import my
+from Objects import Apple, knifes, Heart
 
 
 class Hero(pg.sprite.Sprite):
 
-    image = pg.image.load('data/hero/right.png')
     imageRight = pg.image.load('data/hero/right.png')
     imageLeft = pg.image.load('data/hero/left.png')
+    imageUp = pg.image.load('data/hero/up.png')
+    imageDown = pg.image.load('data/hero/down.png')
     
     def __init__(self):
         super().__init__(my.player_group, my.all_sprites)
-        self.image = Hero.image
+        self.image = Hero.imageDown
         self.x = my.hPos[0]
         self.y = my.hPos[1]
         self.rect = self.image.get_rect().move(self.x, self.y)
         self.mask = pg.mask.from_surface(self.image)
-
-        self.checkPos()
-        
-        self.crHealth()
         
         self.speed = 0.1
-        self.fight = False
-        self.gun = None
+        self.hand = None
+        self.health = my.maxHealth
+        self.direction = 'R'
+
+        self.checkPos()
+        self.crHealth()
 
     def checkPos(self):
         objs = pg.sprite.spritecollide(self, my.objects, True)
@@ -30,43 +33,61 @@ class Hero(pg.sprite.Sprite):
             my.all_sprites.remove(obj)
 
     def crHealth(self):
-        [Life(self, i * 30, 0) for i in range(my.maxHealth)]   
+        self.lifes = [Life(self, i * 30) for i in range(self.health)]
+
+    def addLife(self):
+        if self.health < my.maxHealth:
+            self.lifes.append(Life(self, self.health * 30))
+            self.health += 1
+            return True
+
+    def removeLifes(self, damage):
+        damage = min(self.health, damage)
+        for _ in range(damage):
+            self.health -= 1
+            my.player_group.remove(self.lifes[-1])
+            self.lifes.pop(-1)
+        if not self.health:
+            my.endGame()
 
     def move(self):
-        self.gun = my.inv.gun
-        
-        # Получение команд клавиатуры
-        pressed = pg.key.get_pressed()
+        self.hand = my.inv.obj
 
         # Установка скорости
         speed = self.speed
-        if pressed[pg.K_LSHIFT]:
+        if my.pressed[pg.K_LSHIFT]:
             speed *= 2
 
         # Перемещение персонажа
-        if pressed[pg.K_w] or pressed[pg.K_UP]:
+        if my.pressed[pg.K_w] or my.pressed[pg.K_UP]:
+            self.direction = 'U'
+            self.image = Hero.imageUp
             self.rect.y -= my.cellSize * speed
             if self.cant():
                 self.rect.y += my.cellSize * speed
-        if pressed[pg.K_s] or pressed[pg.K_DOWN]:
+        if my.pressed[pg.K_s] or my.pressed[pg.K_DOWN]:
+            self.direction = 'D'
+            self.image = Hero.imageDown
             self.rect.y += my.cellSize * speed
             if self.cant():
                 self.rect.y -= my.cellSize * speed
-        if pressed[pg.K_a] or pressed[pg.K_LEFT]:
+        if my.pressed[pg.K_a] or my.pressed[pg.K_LEFT]:
+            self.direction = 'L'
             self.image = Hero.imageLeft
             self.rect.x -= my.cellSize * speed
             if self.cant():
                 self.rect.x += my.cellSize * speed
-        if pressed[pg.K_d] or pressed[pg.K_RIGHT]:
+        if my.pressed[pg.K_d] or my.pressed[pg.K_RIGHT]:
+            self.direction = 'R'
             self.image = Hero.imageRight
             self.rect.x += my.cellSize * speed
             if self.cant():
                 self.rect.x -= my.cellSize * speed
 
-        # Взаимодействие
-        if pressed[pg.K_e]:
+    def used(self):
+        if my.pressed[pg.K_e]:
             inv = Invisible(self.x, self.y)
-            obj = inv.search()
+            obj = inv.search(self.direction)
             if obj:
                 obj.do()
                 
@@ -74,14 +95,39 @@ class Hero(pg.sprite.Sprite):
         return (pg.sprite.spritecollideany(self, my.objects) or
                 pg.sprite.spritecollideany(self, my.evil_group))
 
+    def do(self):
+        if not self.hand:
+            return 0
+        if self.hand.__class__ is Apple:
+            my.inv.remove(self.hand)
+            AppleBall(self.direction)
+        elif self.hand.__class__ in knifes:
+            if randint(1, 10) == 1:
+                self.fight(self.hand.power)
+                my.inv.remove(self.hand)
+        elif self.hand.__class__ is Heart:
+            if self.addLife():
+                my.inv.remove(self.hand)
 
+    def fight(self, power):
+        inv = Invisible(self.x, self.y)
+        obj = inv.search(self.direction)
+        if obj in my.evil_group:
+            obj.to_hurt(power)
+        elif obj:
+            obj.trash()
+
+    
 class Life(pg.sprite.Sprite):
 
     image = pg.image.load('data/heart.png')
 
-    def __init__(self, hero, x, y):
+    def __init__(self, hero, x):
         super().__init__(my.player_group)
-        self.rect = self.image.get_rect().move(x, y)   
+        self.rect = self.image.get_rect().move(x, 0)
+
+    def move(self):
+        pass
         
     
 class Invisible(pg.sprite.Sprite):
@@ -94,20 +140,59 @@ class Invisible(pg.sprite.Sprite):
         self.x = x
         self.y = y
 
-    def search(self, group=my.objects):
-        cells = [(self.x + my.cellSize, self.y),
-                 (self.x - my.cellSize, self.y),
-                 (self.x, self.y - my.cellSize),
-                 (self.x, self.y + my.cellSize)]
-        
-        for x, y in cells:
-            obj = self.check(x, y, group)
-            if obj:
-                return obj
+    def search(self, direction, group=my.objects):
+        if direction == 'U':
+            self.y -= my.cellSize
+        elif direction == 'D':
+            self.y += my.cellSize
+        elif direction == 'R':
+            self.x += my.cellSize
+        elif direction == 'L':
+            self.x -= my.cellSize
+        obj = self.check(group)
+        if obj:
+            return obj
 
-    def check(self, x, y, group):
-        self.rect = self.image.get_rect().move(x, y)
+    def check(self, group):
+        self.rect = self.image.get_rect().move(self.x, self.y)
         return pg.sprite.spritecollideany(self, group)
+
+
+class AppleBall(pg.sprite.Sprite):
+
+    image = pg.image.load('data/apple.png')
+    
+    def __init__(self, direction):
+        super().__init__(my.player_group, my.all_sprites)
+        self.image = self.image
+        self.rect = self.image.get_rect().move(my.hPos)
+        self.direction = direction
+        self.speed = 0.2
+        self.damage = 1
+
+    def move(self):
+        if self.direction == 'U':
+            self.rect.y -= self.speed * my.cellSize
+        elif self.direction == 'D':
+            self.rect.y += self.speed * my.cellSize
+        elif self.direction == 'R':
+            self.rect.x += self.speed * my.cellSize
+        elif self.direction == 'L':
+            self.rect.x -= self.speed * my.cellSize
+
+        obj = pg.sprite.spritecollideany(self, my.evil_group)
+        if obj:
+            obj.to_hurt(self.damage)
+        else:
+            obj = pg.sprite.spritecollideany(self, my.objects)
+        if obj:
+            self.trash()
+
+    def trash(self):
+        my.player_group.remove(self)
+        my.all_sprites.remove(self)
+        
+        
 
 
 

@@ -4,43 +4,48 @@ from Start import my
 
 
 class Thing(pg.sprite.Sprite):
-    def __init__(self, inv, args):
+    def __init__(self, place):
         super().__init__(my.inventory)
-        if inv:
-            self.image = self.imageInv
-            x = args[0] * my.cellSize
-            y = my.h - my.invSize
-        else:
-            self.image = self.image
-            x, y = args
+        self.image = self.image
+        x = place * my.cellSize
+        y = my.h - my.invSize
         self.rect = self.image.get_rect().move(x, y)
 
     
 class Apple(Thing):
+    
+    image = pg.image.load('data/inventory/apple.png')
 
-    image = pg.image.load('data/stone.png')
-    imageInv = pg.image.load('data/stone.png')
+class Knife1(Thing):
+    
+    image = pg.image.load('data/inventory/knife/1.png')
+    power = 1
 
-    def __init__(self, *args, inv=False):
-        super().__init__(inv, args)
-        
+class Knife2(Thing):
+    
+    image = pg.image.load('data/inventory/knife/2.png')
+    power = 2
 
-class Apple2(Thing):
+class Knife3(Thing):
+    
+    image = pg.image.load('data/inventory/knife/3.png')
+    power = 3
 
-    image = pg.image.load('data/tree.png')
-    imageInv = pg.image.load('data/tree.png')
+class Knife4(Thing):
+    
+    image = pg.image.load('data/inventory/knife/4.png')
+    power = 4
 
-    def __init__(self, *args, inv=False):
-        super().__init__(inv, args)
+class Knife5(Thing):
+    
+    image = pg.image.load('data/inventory/knife/5.png')
+    power = 5
 
+knifes = [Knife1, Knife2, Knife3, Knife4, Knife5]
 
-class Apple3(Thing):
-
-    image = pg.image.load('data/water.png')
-    imageInv = pg.image.load('data/water.png')
-
-    def __init__(self, *args, inv=False):
-        super().__init__(inv, args)
+class Heart(Thing):
+    
+    image = pg.image.load('data/inventory/heart.png')
         
         
 class Object(pg.sprite.Sprite):
@@ -51,6 +56,10 @@ class Object(pg.sprite.Sprite):
 
     def do(self):
         print(self.__class__)
+
+    def trash(self):
+        my.objects.remove(self)
+        my.all_sprites.remove(self)
         
 
 class Water(Object):
@@ -60,7 +69,21 @@ class Water(Object):
         
 class Tree(Object):
 
-    image = pg.image.load('data/tree.png')
+    image = pg.image.load('data/tree/with_apples.png')
+    image2 = pg.image.load('data/tree/without_apples.png')
+
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.apples = True
+
+    def do(self):
+        if not self.apples:
+            return 0
+        self.apples = False
+        self.image = Tree.image2
+        count = randint(1, 10)
+        for _ in range(count):
+            my.inv.append(Apple)
 
 
 class Stone(Object):
@@ -72,7 +95,8 @@ class Chest(Object):
 
     image = pg.image.load('data/chest/closed.png')
     image2 = pg.image.load('data/chest/open.png')
-    objects = [Apple, Apple2, Apple3]
+    objects = [Apple, 'Knife', Heart]
+    knifes = [Knife1, Knife2, Knife3, Knife4, Knife5]
 
     def __init__(self, x, y):
         super().__init__(x, y)
@@ -83,8 +107,11 @@ class Chest(Object):
             return 0
         self.closed = False
         self.image = Chest.image2
-        count = randint(0, 10)
+        count = randint(1, 5)
         for _ in range(count):
-            my.inv.append(choice(Chest.objects))
+            name = choice(Chest.objects)
+            if name == 'Knife':
+                name = choice(Chest.knifes)
+            my.inv.append(name)
     
             

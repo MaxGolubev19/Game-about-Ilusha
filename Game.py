@@ -16,29 +16,36 @@ def refresh():
     my.clock.tick(my.fps)
     
 
-player = Hero()
 refresh()
 
 while my.running:
-    
-    player.move()
+    refresh()
 
     for event in pg.event.get():
         if event.type == pg.QUIT:
             my.running = False
-        if event.type == pg.MOUSEBUTTONDOWN:
+        if event.type == pg.MOUSEBUTTONUP:
             x, y = event.pos
             if y > my.h - my.invSize:
-                try:
-                    my.inv.choose(x)
-                except Exception as e:
-                    print(e)
+                my.inv.choose(x)
+        if event.type == pg.KEYUP:
+            if event.key == pg.K_TAB:
+                my.inv.next()
+            if event.key == pg.K_SPACE:
+                my.player.do()
+            if event.key == pg.K_e:
+                my.player.used()
+
+    my.pressed = pg.key.get_pressed()
+
+    for sprite in my.player_group:
+        sprite.move()
+
+    for sprite in my.evil_group:
+        sprite.move()
     
-    my.camera.update(player)
+    my.camera.update(my.player)
     for sprite in my.all_sprites:
         my.camera.apply(sprite)
-
-    if my.running:
-        refresh()
 
 pg.quit()
