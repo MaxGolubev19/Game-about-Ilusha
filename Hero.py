@@ -86,19 +86,19 @@ class Hero(pg.sprite.Sprite):
             self.rect.y -= my.cellSize * speed
             if self.cant():
                 self.rect.y += my.cellSize * speed
-        elif my.pressed[pg.K_s] or my.pressed[pg.K_DOWN]:
+        if my.pressed[pg.K_s] or my.pressed[pg.K_DOWN]:
             self.run = True
             self.direction = 'D'
             self.rect.y += my.cellSize * speed
             if self.cant():
                 self.rect.y -= my.cellSize * speed
-        elif my.pressed[pg.K_a] or my.pressed[pg.K_LEFT]:
+        if my.pressed[pg.K_a] or my.pressed[pg.K_LEFT]:
             self.run = True
             self.direction = 'L'
             self.rect.x -= my.cellSize * speed
             if self.cant():
                 self.rect.x += my.cellSize * speed
-        elif my.pressed[pg.K_d] or my.pressed[pg.K_RIGHT]:
+        if my.pressed[pg.K_d] or my.pressed[pg.K_RIGHT]:
             self.run = True
             self.direction = 'R'
             self.rect.x += my.cellSize * speed
