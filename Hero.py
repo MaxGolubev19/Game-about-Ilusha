@@ -168,7 +168,7 @@ class Hero(pg.sprite.Sprite):
 
     def used(self):
         inv = Invisible(self.x, self.y)
-        obj = inv.search(self.direction)
+        obj = inv.search(self.direction, my.objects)
         print(obj)
         if obj:
             obj.do()
@@ -224,7 +224,7 @@ class Invisible(pg.sprite.Sprite):
         self.x = x
         self.y = y
 
-    def search(self, direction, group=my.objects):
+    def search(self, direction, group):
         if direction == 'U':
             self.y -= my.cellSize
         elif direction == 'D':
