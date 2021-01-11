@@ -1,6 +1,17 @@
 import pygame as pg
 from random import randint, choice
 
+
+def cut(image):
+    frames = []
+    w, h = image.get_width() // my.cellSize, image.get_height() // my.cellSize
+    rect = pg.Rect(0, 0, my.cellSize, my.cellSize)
+    for y in range(h):
+        for x in range(w):
+            location = rect.w * x, rect.h * y
+            frames.append(image.subsurface(pg.Rect(location, rect.size)))
+    return frames
+
         
 class Start:
     def __init__(self):
@@ -8,6 +19,7 @@ class Start:
         self.cellSize = 50
         self.invSize = 50
         self.fps = 100
+        self.time = 10
         self.length = 60
         self.maxHealth = 10
         self.title = 'Игра'
@@ -122,3 +134,10 @@ class Start:
 
 my = Start()
 my.create(['Игра', '', 'Нажмите любую кнопку, чтобы начать игру'])
+
+
+
+
+
+
+    

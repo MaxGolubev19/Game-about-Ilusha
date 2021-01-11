@@ -1,28 +1,44 @@
 import pygame as pg
 from random import randint
-from Start import my
+from Start import my, cut
 from Objects import Apple, knifes, Heart
 
 
 class Hero(pg.sprite.Sprite):
+    image = {'R': pg.image.load('data/hero/right.png'),
+             'L': pg.image.load('data/hero/left.png'),
+             'U': pg.image.load('data/hero/up.png'),
+             'D': pg.image.load('data/hero/down.png'),
+             }
+    
+    imageRun = {'R': cut(pg.image.load('data/hero/rightRun.png')),
+                'L': cut(pg.image.load('data/hero/leftRun.png')),
+                'U': cut(pg.image.load('data/hero/upRun.png')),
+                'D': cut(pg.image.load('data/hero/downRun.png')),
+                }
 
-    imageRight = pg.image.load('data/hero/right.png')
-    imageLeft = pg.image.load('data/hero/left.png')
-    imageUp = pg.image.load('data/hero/up.png')
-    imageDown = pg.image.load('data/hero/down.png')
+    imageAttack = {'R': pg.image.load('data/hero/rightAttack.png'),
+                   'L': pg.image.load('data/hero/leftAttack.png'),
+                   'U': pg.image.load('data/hero/up.png'),
+                   'D': pg.image.load('data/hero/down.png'),
+                  }
     
     def __init__(self):
+        self.speed = 0.1
+        self.hand = None
+        self.health = my.maxHealth
+        self.direction = 'D'
+        self.step = 0
+        self.run = False
+        self.time = 0
+        self.waitImage = 20
+        
         super().__init__(my.player_group, my.all_sprites)
-        self.image = Hero.imageDown
+        self.image = Hero.image['D']
         self.x = my.hPos[0]
         self.y = my.hPos[1]
         self.rect = self.image.get_rect().move(self.x, self.y)
         self.mask = pg.mask.from_surface(self.image)
-        
-        self.speed = 0.1
-        self.hand = None
-        self.health = my.maxHealth
-        self.direction = 'R'
 
         self.checkPos()
         self.crHealth()
@@ -64,29 +80,44 @@ class Hero(pg.sprite.Sprite):
 
         # Перемещение персонажа
         if my.pressed[pg.K_w] or my.pressed[pg.K_UP]:
+            self.run = True
             self.direction = 'U'
-            self.image = Hero.imageUp
             self.rect.y -= my.cellSize * speed
             if self.cant():
                 self.rect.y += my.cellSize * speed
-        if my.pressed[pg.K_s] or my.pressed[pg.K_DOWN]:
+        elif my.pressed[pg.K_s] or my.pressed[pg.K_DOWN]:
+            self.run = True
             self.direction = 'D'
-            self.image = Hero.imageDown
             self.rect.y += my.cellSize * speed
             if self.cant():
                 self.rect.y -= my.cellSize * speed
-        if my.pressed[pg.K_a] or my.pressed[pg.K_LEFT]:
+        elif my.pressed[pg.K_a] or my.pressed[pg.K_LEFT]:
+            self.run = True
             self.direction = 'L'
-            self.image = Hero.imageLeft
             self.rect.x -= my.cellSize * speed
             if self.cant():
                 self.rect.x += my.cellSize * speed
-        if my.pressed[pg.K_d] or my.pressed[pg.K_RIGHT]:
+        elif my.pressed[pg.K_d] or my.pressed[pg.K_RIGHT]:
+            self.run = True
             self.direction = 'R'
-            self.image = Hero.imageRight
             self.rect.x += my.cellSize * speed
             if self.cant():
                 self.rect.x -= my.cellSize * speed
+        self.setImage()
+
+    def setImage(self):
+        if self.run:
+            if self.time == my.time:
+                self.image = Hero.imageRun[self.direction][self.step]
+                self.step = (self.step + 1) % len(Hero.imageRun[self.direction])
+                self.time = 0
+            else:
+                self.time += 1
+        else:
+            self.image = Hero.image[self.direction]
+            self.step = 0
+            self.time = 0
+        self.run = False
 
     def autoMoving(self):
         if self.time > 0:

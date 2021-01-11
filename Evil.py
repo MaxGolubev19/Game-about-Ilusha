@@ -1,16 +1,18 @@
 import pygame as pg
-from Start import my
+from Start import my, cut
 from Objects import Water
 
 
 class Evil(pg.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(my.evil_group, my.all_sprites)
-        self.image = self.image
+        self.direction = 'R'
+        self.image = self.imageDied[self.direction]
         self.rect = self.image.get_rect().move(x * my.cellSize, y * my.cellSize)
         self.health = self.maxHealth
-        self.direction = 'R'
         self.wait = False
+        self.step = 0
+        self.time = 0
 
     def moving(self):
         x, y = my.hPos
@@ -22,11 +24,9 @@ class Evil(pg.sprite.Sprite):
             self.rect.y -= self.speed
         if x > self.rect.x:
             self.direction = 'R'
-            self.image = self.imageRight
             self.rect.x += self.speed
         if x < self.rect.x:
             self.direction = 'L'
-            self.image = self.imageLeft
             self.rect.x -= self.speed
 
     def to_hurt(self, damage):
@@ -36,19 +36,43 @@ class Evil(pg.sprite.Sprite):
 
     def death(self):
         my.evil_group.remove(self)
-        my.objects.add(self)
-        self.image = self.imageDied
+        if self.__class__ != Ghost:
+            my.objects.add(self)
+        self.image = self.imageDied[self.direction]
         my.crEvil()
+
+    def setImage(self, style):
+        if style == 'moving' or self.wait:
+            if self.time == my.time:
+                self.image = self.imageRun[self.direction][self.step]
+                self.step = (self.step + 1) % len(self.imageRun[self.direction])
+                self.time = 0
+            else:
+                self.time += 1
+        elif style == 'fight':
+            self.image = self.imageAttack[self.direction]
+            self.time = 0
 
 
 class Pig(Evil):
 
-    image = pg.image.load('data/pig/right.png')
-    imageRight = pg.image.load('data/pig/right.png')
-    imageLeft = pg.image.load('data/pig/left.png')
-    imageAttackRight = pg.image.load('data/pig/rightAttack.png')
-    imageAttackLeft = pg.image.load('data/pig/leftAttack.png')
-    imageDied = pg.image.load('data/pig/rightDied.png')
+    imageRun= {'R': cut(pg.image.load('data/pig/rightRun.png')),
+               'L': cut(pg.image.load('data/pig/leftRun.png')),
+               'U': cut(pg.image.load('data/pig/leftRun.png')),
+               'D': cut(pg.image.load('data/pig/leftRun.png')),
+               }
+     
+    imageAttack = {'R': pg.image.load('data/pig/rightAttack.png'),
+                   'L': pg.image.load('data/pig/leftAttack.png'),
+                   'U': pg.image.load('data/pig/leftAttack.png'),
+                   'D': pg.image.load('data/pig/leftAttack.png'),
+                  }
+
+    imageDied = {'R': pg.image.load('data/pig/rightDied.png'),
+                 'L': pg.image.load('data/pig/leftDied.png'),
+                 'U': pg.image.load('data/pig/leftDied.png'),
+                 'D': pg.image.load('data/pig/leftDied.png'),
+                 }
     
     speed = 0.1 * my.cellSize
     disRun = 10 * my.cellSize
@@ -59,12 +83,16 @@ class Pig(Evil):
 
     def move(self):
         if self.wait:
+            self.setImage('moving')
             self.backMoving()
         elif self.check(Pig.disFight):
+            self.setImage('fight')
             self.fight() 
         elif self.check(Pig.disAttack):
+            self.setImage('fight')
             self.attack()
         elif self.check(Pig.disRun):
+            self.setImage('moving')
             self.moving()
         obj = pg.sprite.spritecollideany(self, my.objects)
         if obj:
@@ -88,10 +116,8 @@ class Pig(Evil):
         if y <= self.rect.y:
             self.rect.y -= self.speed * 3
         if x > self.rect.x:
-            self.image = Pig.imageAttackRight
             self.rect.x += self.speed * 3
         if x <= self.rect.x:
-            self.image = Pig.imageAttackLeft
             self.rect.x -= self.speed * 3
 
     def fight(self):
@@ -113,12 +139,23 @@ class Pig(Evil):
 
 class Ghost(Evil):
 
-    image = pg.image.load('data/ghost/right.png')
-    imageRight = pg.image.load('data/ghost/right.png')
-    imageLeft = pg.image.load('data/ghost/left.png')
-    imageAttackRight = pg.image.load('data/ghost/right.png')
-    imageAttackLeft = pg.image.load('data/ghost/left.png')
-    imageDied = pg.image.load('data/ghost/rightDied.png')
+    imageRun = {'R': cut(pg.image.load('data/ghost/right.png')),
+             'L': cut(pg.image.load('data/ghost/left.png')),
+             'U': cut(pg.image.load('data/ghost/left.png')),
+             'D': cut(pg.image.load('data/ghost/left.png')),
+             }
+
+    imageAttack = {'R': pg.image.load('data/ghost/rightAttack.png'),
+                   'L': pg.image.load('data/ghost/leftAttack.png'),
+                   'U': pg.image.load('data/ghost/leftAttack.png'),
+                   'D': pg.image.load('data/ghost/leftAttack.png'),
+                  }
+
+    imageDied = {'R': pg.image.load('data/ghost/rightDied.png'),
+                 'L': pg.image.load('data/ghost/leftDied.png'),
+                 'U': pg.image.load('data/ghost/leftDied.png'),
+                 'D': pg.image.load('data/ghost/leftDied.png'),
+                 }
 
     speed = 0.05 * my.cellSize
     disRun = 10 * my.cellSize
@@ -127,8 +164,10 @@ class Ghost(Evil):
 
     def move(self):
         if self.check(Ghost.disFight, 0):
+            self.setImage('fight')
             self.fight()
         elif self.check(Ghost.disRun, Ghost.disRun):
+            self.setImage('moving')
             self.moving()
 
     def check(self, dis1, dis2):
@@ -140,13 +179,13 @@ class Ghost(Evil):
             MagicBall(self, self.direction)
             self.wait = True
 
-
 class MagicBall(pg.sprite.Sprite):
 
-    imageUp = pg.image.load('data/fireball/up.png')
-    imageDown = pg.image.load('data/fireball/down.png')
-    imageRight = pg.image.load('data/fireball/right.png')
-    imageLeft = pg.image.load('data/fireball/left.png')
+    image = {'R': pg.image.load('data/fireball/right.png'),
+             'L': pg.image.load('data/fireball/left.png'),
+             'U': pg.image.load('data/fireball/up.png'),
+             'D': pg.image.load('data/fireball/down.png'),
+             }
     
     def __init__(self, evil, direction):
         super().__init__(my.evil_group, my.all_sprites)
@@ -155,22 +194,18 @@ class MagicBall(pg.sprite.Sprite):
         self.power = 1
         self.evil = evil
 
-        self.image = MagicBall.imageUp
+        self.image = MagicBall.image[self.direction]
         self.rect = self.image.get_rect().move(self.evil.rect.x, self.evil.rect.y)
 
     def move(self):
         if self.direction == 'U':
             self.rect.y -= self.speed * my.cellSize
-            self.image = MagicBall.imageUp
         elif self.direction == 'D':
             self.rect.y += self.speed * my.cellSize
-            self.image = MagicBall.imageDown
         elif self.direction == 'R':
             self.rect.x += self.speed * my.cellSize
-            self.image = MagicBall.imageRight
         elif self.direction == 'L':
             self.rect.x -= self.speed * my.cellSize
-            self.image = MagicBall.imageLeft
 
         obj = pg.sprite.spritecollideany(self, my.player_group)
         if obj is my.player:
