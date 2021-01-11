@@ -1,7 +1,8 @@
 import pygame as pg
 from random import randint
 from Start import my, cut
-from Objects import Apple, knifes, Heart
+from Objects import Apple, knifes, Heart, Water
+from Evil import Ghost
 
 
 class Hero(pg.sprite.Sprite):
@@ -10,7 +11,7 @@ class Hero(pg.sprite.Sprite):
              'U': pg.image.load('data/hero/up.png'),
              'D': pg.image.load('data/hero/down.png'),
              }
-    
+
     imageRun = {'R': cut(pg.image.load('data/hero/rightRun.png')),
                 'L': cut(pg.image.load('data/hero/leftRun.png')),
                 'U': cut(pg.image.load('data/hero/upRun.png')),
@@ -21,18 +22,18 @@ class Hero(pg.sprite.Sprite):
                    'L': pg.image.load('data/hero/leftAttack.png'),
                    'U': pg.image.load('data/hero/up.png'),
                    'D': pg.image.load('data/hero/down.png'),
-                  }
-    
+                   }
+
     def __init__(self):
         self.speed = 0.1
         self.hand = None
         self.health = my.maxHealth
         self.direction = 'D'
-        self.step = 0
+        self.step = 1
         self.run = False
         self.time = 0
         self.waitImage = 20
-        
+
         super().__init__(my.player_group, my.all_sprites)
         self.image = Hero.image['D']
         self.x = my.hPos[0]
@@ -105,18 +106,25 @@ class Hero(pg.sprite.Sprite):
                 self.rect.x -= my.cellSize * speed
         self.setImage()
 
-    def setImage(self):
-        if self.run:
+    def setImage(self, fight=False):
+        if fight:
+            self.image = Hero.imageAttack[self.direction]
+            self.time = 0
+        elif self.run:
             if self.time == my.time:
                 self.image = Hero.imageRun[self.direction][self.step]
-                self.step = (self.step + 1) % len(Hero.imageRun[self.direction])
+                self.step = (
+                    self.step + 1) % len(Hero.imageRun[self.direction])
                 self.time = 0
             else:
                 self.time += 1
         else:
-            self.image = Hero.image[self.direction]
-            self.step = 0
-            self.time = 0
+            if self.time == my.time:
+                self.image = Hero.image[self.direction]
+                self.step = 0
+                self.time = 0
+            else:
+                self.time += 1
         self.run = False
 
     def autoMoving(self):
@@ -156,7 +164,7 @@ class Hero(pg.sprite.Sprite):
         self.stepX = 0
         self.xEnd = 0
         self.stepY = 0
-        self.yEnd = 0   
+        self.yEnd = 0
 
     def used(self):
         inv = Invisible(self.x, self.y)
@@ -164,10 +172,11 @@ class Hero(pg.sprite.Sprite):
         print(obj)
         if obj:
             obj.do()
-                
+
     def cant(self):
-        return (pg.sprite.spritecollideany(self, my.objects) or
-                pg.sprite.spritecollideany(self, my.evil_group))
+        obj = pg.sprite.spritecollideany(self, my.objects)
+        evil = pg.sprite.spritecollideany(self, my.evil_group)
+        return (obj or evil and pg.sprite.spritecollideany(self, my.evil_group).__class__ != Ghost)
 
     def do(self):
         if not self.hand:
@@ -184,14 +193,15 @@ class Hero(pg.sprite.Sprite):
                 my.inv.remove(self.hand)
 
     def fight(self, power):
+        self.setImage(True)
         inv = Invisible(self.x, self.y)
         obj = inv.search(self.direction)
         if obj in my.evil_group:
             obj.to_hurt(power)
-        elif obj:
+        elif obj and obj.__class__ != Water:
             obj.trash()
 
-    
+
 class Life(pg.sprite.Sprite):
 
     image = pg.image.load('data/heart.png')
@@ -202,12 +212,12 @@ class Life(pg.sprite.Sprite):
 
     def move(self):
         pass
-        
-    
+
+
 class Invisible(pg.sprite.Sprite):
 
     image = pg.image.load('data/grass.png')
-    
+
     def __init__(self, x, y):
         super().__init__()
         self.image = Invisible.image
@@ -233,7 +243,7 @@ class Invisible(pg.sprite.Sprite):
 class AppleBall(pg.sprite.Sprite):
 
     image = pg.image.load('data/apple.png')
-    
+
     def __init__(self, direction):
         super().__init__(my.player_group, my.all_sprites)
         self.image = self.image
@@ -263,18 +273,3 @@ class AppleBall(pg.sprite.Sprite):
     def trash(self):
         my.player_group.remove(self)
         my.all_sprites.remove(self)
-        
-        
-
-
-
-
-
-
-
-
-
-
-
-
-            

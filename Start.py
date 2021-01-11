@@ -12,14 +12,14 @@ def cut(image):
             frames.append(image.subsurface(pg.Rect(location, rect.size)))
     return frames
 
-        
+
 class Start:
     def __init__(self):
         # Параметры игры
         self.cellSize = 50
         self.invSize = 50
         self.fps = 100
-        self.time = 10
+        self.time = 6
         self.length = 60
         self.maxHealth = 10
         self.title = 'Игра'
@@ -32,6 +32,7 @@ class Start:
         self.screen = pg.display.set_mode(self.size)
 
     def create(self, text):
+        self.ppp = 0
         self.crGame()
         self.crWater()
         self.crObjects()
@@ -49,7 +50,7 @@ class Start:
         from Field import Camera, Inventory
 
         self.stepX = 0
-        self.stepY = 0        
+        self.stepY = 0
         self.camera = Camera()
         self.inv = Inventory()
         self.clock = pg.time.Clock()
@@ -57,7 +58,7 @@ class Start:
 
     def crWater(self):
         from Objects import Water
-        
+
         for a in range(-self.length - 10, self.length + 11):
             for b in range(self.length + 1, self.length + 11):
                 Water(a, b)
@@ -88,11 +89,11 @@ class Start:
 
     def crEvils(self, allCount):
         for _ in range(allCount):
-            self.crEvil()        
+            self.crEvil()
 
     def crEvil(self):
         from Evil import Pig, Ghost
-        
+
         name = choice([Pig, Ghost])
         x = randint(-self.length, self.length)
         y = randint(-self.length, self.length)
@@ -122,22 +123,16 @@ class Start:
                     return
             pg.display.flip()
             self.clock.tick(my.fps)
-                
+
     def can(self, obj):
         return len(pg.sprite.spritecollide(obj, my.objects, False)) == 1
 
     def endGame(self):
         self.clock.tick(5)
         self.running = False
-        self.create(['Вы проиграли!', '', 'Нажмите любую кнопку, чтобы начать новую игру'])
-        
+        self.create(
+            ['Вы проиграли!', '', 'Нажмите любую кнопку, чтобы начать новую игру'])
+
 
 my = Start()
 my.create(['Игра', '', 'Нажмите любую кнопку, чтобы начать игру'])
-
-
-
-
-
-
-    
