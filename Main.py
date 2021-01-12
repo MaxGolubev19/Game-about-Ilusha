@@ -9,7 +9,6 @@ from Help import refresh
 from Start import newGame
 import My as my
 
-
 """Игровой цикл"""
 
 

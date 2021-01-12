@@ -78,6 +78,7 @@ class FireBall(pg.sprite.Sprite):
         if obj is my.player:
             self.death()
             my.player.removeLifes(self.power)
+            my.player.ghost = self.evil
         else:
             obj = pg.sprite.spritecollideany(self, my.objects)
             if obj:

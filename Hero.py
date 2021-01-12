@@ -4,7 +4,7 @@ import Game
 import Start
 import My as my
 from Help import cut, Invisible
-from Thing import Apple, Knife, Heart
+from Thing import Apple, Knife, Heart, God
 from Objects import Water
 from Evil import Ghost
 from Bullets import AppleBall
@@ -28,9 +28,11 @@ class Hero(pg.sprite.Sprite):
 
     imageAttack = {'R': pg.image.load('data/hero/rightAttack.png'),
                    'L': pg.image.load('data/hero/leftAttack.png'),
-                   'U': pg.image.load('data/hero/up.png'),
-                   'D': pg.image.load('data/hero/down.png'),
+                   'U': pg.image.load('data/hero/upAttack.png'),
+                   'D': pg.image.load('data/hero/downAttack.png'),
                    }
+
+    imageGod = cut(pg.image.load('data/hero/with_god.png'))
 
     soundRun = pg.mixer.Sound('data/sounds/hero/run.mp3')
     volumeRun = Game.SOUND_VOLUME / 5
@@ -54,8 +56,11 @@ class Hero(pg.sprite.Sprite):
         self.direction = 'D'
         self.step = 1
         self.run = False
+        self.god = False
         self.time = 0
+        self.god_time = 0
         self.waitImage = 20
+        self.ghost = None
 
         super().__init__(my.player_group, my.all_sprites)
         self.image = Hero.image['D']
@@ -133,7 +138,17 @@ class Hero(pg.sprite.Sprite):
 
     def setImage(self, fight=False):
         # Смена кадра анимации
-        if fight:
+        if self.god:
+            if self.time == Game.TIME:
+                self.image = Hero.imageGod[self.step]
+                self.step = (self.step + 1) % len(Hero.imageGod)
+                self.time = 0
+                self.god_time += 1
+                if self.god_time == Game.TIME * 7:
+                    self.god = False
+            else:
+                self.time += 1
+        elif fight:
             self.image = Hero.imageAttack[self.direction]
             self.time = 0
         elif self.run:
@@ -193,6 +208,11 @@ class Hero(pg.sprite.Sprite):
                 Hero.soundLife.play()
             if self.addLife():
                 my.inventory.remove(self.hand)
+        elif self.hand.__class__ is God:
+            if my.sound:
+                Hero.soundGod.play()
+            my.inventory.remove(self.hand)
+            self.prayer()
 
     def fight(self, power):
         # Атака
@@ -206,6 +226,20 @@ class Hero(pg.sprite.Sprite):
             obj = inv.check(my.objects)
             if obj and obj.__class__ != Water:
                 obj.death()
+
+    def prayer(self):
+        if my.sound_run:
+            Hero.soundGod.play() 
+        self.step = 0
+        self.time = 0
+        self.god = True
+        self.god_time = 0
+        if self.ghost:
+            self.ghost.death()
+            self.ghost = None
+        if randint(1, 10) == 1:
+            while self.health < Game.MAX_HEALTH:
+                self.addLife()
 
 
 class Life(pg.sprite.Sprite):

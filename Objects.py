@@ -2,7 +2,7 @@ import pygame as pg
 from random import randint, choice
 import Game
 import My as my
-from Thing import Apple, Knife, Heart
+from Thing import Apple, Knife, Heart, God
 
 
 """Объекты"""
@@ -64,7 +64,7 @@ class Stone(Object):
 
 class Chest(Object):
 
-    objects = [Apple, Knife, Heart]
+    objects = [Apple, Knife, Heart, God]
     
     image = pg.image.load('data/chest/closed.png')
     imageUsed = pg.image.load('data/chest/open.png')
@@ -82,7 +82,6 @@ class Chest(Object):
         if not self.closed:
             return 0
         self.closed = False
-        print(my.sound)
         if my.sound:
             Chest.sound.play()
         self.image = Chest.imageUsed

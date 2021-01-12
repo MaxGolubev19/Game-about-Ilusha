@@ -40,3 +40,8 @@ class Knife(Thing):
 class Heart(Thing):
     
     image = pg.image.load('data/inventory/heart.png')
+
+
+class God(Thing):
+
+    image = pg.image.load('data/inventory/god.png')
