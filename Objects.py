@@ -22,7 +22,7 @@ class Object(pg.sprite.Sprite):
     def death(self):
         # Уничтожение объекта
         my.objects.remove(self)
-        my.all_sprites.remove(self)
+        self.image = self.imageTrash
         
 
 class Water(Object):
@@ -34,6 +34,10 @@ class Tree(Object):
 
     image = pg.image.load('data/tree/with_apples.png')
     imageUsed = pg.image.load('data/tree/without_apples.png')
+    imageTrash = pg.image.load('data/tree/trash.png')
+    
+    sound = pg.mixer.Sound('data/sounds/objects/tree.mp3')
+    sound.set_volume(Game.SOUND_VOLUME)
 
     def __init__(self, x, y):
         super().__init__(x, y)
@@ -44,6 +48,8 @@ class Tree(Object):
         if not self.apples:
             return 0
         self.apples = False
+        if my.sound:
+            Tree.sound.play()
         self.image = Tree.imageUsed
         count = randint(1, 10)
         for _ in range(count):
@@ -52,14 +58,20 @@ class Tree(Object):
 
 class Stone(Object):
 
-    image = pg.image.load('data/stone.png')
+    image = pg.image.load('data/stone/stone.png')
+    imageTrash = pg.image.load('data/stone/trash.png')
 
 
 class Chest(Object):
 
+    objects = [Apple, Knife, Heart]
+    
     image = pg.image.load('data/chest/closed.png')
     imageUsed = pg.image.load('data/chest/open.png')
-    objects = [Apple, Knife, Heart]
+    imageTrash = pg.image.load('data/chest/trash.png')
+    
+    sound = pg.mixer.Sound('data/sounds/objects/chest.mp3')
+    sound.set_volume(Game.SOUND_VOLUME)
 
     def __init__(self, x, y):
         super().__init__(x, y)
@@ -70,6 +82,9 @@ class Chest(Object):
         if not self.closed:
             return 0
         self.closed = False
+        print(my.sound)
+        if my.sound:
+            Chest.sound.play()
         self.image = Chest.imageUsed
         count = randint(1, 5)
         for _ in range(count):

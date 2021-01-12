@@ -32,6 +32,20 @@ class Hero(pg.sprite.Sprite):
                    'D': pg.image.load('data/hero/down.png'),
                    }
 
+    soundRun = pg.mixer.Sound('data/sounds/hero/run.mp3')
+    volumeRun = Game.SOUND_VOLUME / 5
+    soundRun.set_volume(Game.SOUND_VOLUME / 5)
+    soundApple = pg.mixer.Sound('data/sounds/hero/apple.mp3')
+    soundApple.set_volume(Game.SOUND_VOLUME)
+    soundAttack = pg.mixer.Sound('data/sounds/hero/attack.mp3')
+    soundAttack.set_volume(Game.SOUND_VOLUME)
+    soundDamage = pg.mixer.Sound('data/sounds/hero/damage.mp3')
+    soundDamage.set_volume(Game.SOUND_VOLUME)
+    soundLife = pg.mixer.Sound('data/sounds/hero/life.mp3')
+    soundLife.set_volume(Game.SOUND_VOLUME)
+    soundGod = pg.mixer.Sound('data/sounds/hero/with_god.mp3')
+    soundGod.set_volume(Game.SOUND_VOLUME)
+
     speed = 0.1 * Game.CELL_SIZE
     
     def __init__(self):
@@ -49,15 +63,8 @@ class Hero(pg.sprite.Sprite):
         self.y = Game.H_POS[1]
         self.rect = self.image.get_rect().move(self.x, self.y)
         self.mask = pg.mask.from_surface(self.image)
-
-        self.checkPos()
+        
         self.crHealth()
-
-    def checkPos(self):
-        # Уничтожение объектов в клетке героя
-        objs = pg.sprite.spritecollide(self, my.objects, True)
-        for obj in objs:
-            my.all_sprites.remove(obj)
 
     def crHealth(self):
         # Создание здоровья
@@ -72,6 +79,8 @@ class Hero(pg.sprite.Sprite):
 
     def removeLifes(self, damage):
         # Удаление жизни
+        if my.sound:
+            Hero.soundDamage.play()
         damage = min(self.health, damage)
         for _ in range(damage):
             self.health -= 1
@@ -118,6 +127,8 @@ class Hero(pg.sprite.Sprite):
             self.rect.x += speed
             if self.cant():
                 self.rect.x -= speed
+        if not self.run:
+            Hero.soundRun.set_volume(0)
         self.setImage()
 
     def setImage(self, fight=False):
@@ -127,6 +138,9 @@ class Hero(pg.sprite.Sprite):
             self.time = 0
         elif self.run:
             if self.time == Game.TIME:
+                if my.sound_run:
+                    Hero.soundRun.set_volume(Hero.volumeRun)
+                    Hero.soundRun.play() 
                 self.image = Hero.imageRun[self.direction][self.step]
                 self.step = (
                     self.step + 1) % len(Hero.imageRun[self.direction])
@@ -144,6 +158,8 @@ class Hero(pg.sprite.Sprite):
 
     def used(self):
         # Взаимодействие с объектом
+        if not self.run:
+            Hero.soundRun.set_volume(0)
         inv = Invisible(self.x, self.y)
         obj = inv.search(self.direction, my.objects)
         print(obj)
@@ -162,13 +178,19 @@ class Hero(pg.sprite.Sprite):
         if not self.hand:
             return 0
         if self.hand.__class__ is Apple:
+            if my.sound:
+                Hero.soundApple.play()
             my.inventory.remove(self.hand)
             AppleBall(self.direction)
         elif self.hand.__class__ is Knife:
+            if my.sound:
+                Hero.soundAttack.play()
             self.fight(self.hand.power)
             if randint(1, 10) == 1:
                 my.inventory.remove(self.hand)
         elif self.hand.__class__ is Heart:
+            if my.sound:
+                Hero.soundLife.play()
             if self.addLife():
                 my.inventory.remove(self.hand)
 
@@ -177,6 +199,7 @@ class Hero(pg.sprite.Sprite):
         self.setImage(True)
         inv = Invisible(self.x, self.y)
         obj = inv.search(self.direction, my.evil_group)
+        
         if obj:
             obj.to_hurt(power)
         else:

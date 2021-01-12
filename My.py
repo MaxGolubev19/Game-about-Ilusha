@@ -9,3 +9,6 @@ camera = None
 inventory = None
 clock = None
 running = None
+music = True
+sound = False
+sound_run = False

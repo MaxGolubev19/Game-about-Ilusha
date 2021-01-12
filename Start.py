@@ -13,22 +13,11 @@ from Help import crObject, crEvil, can
 """Новая игра"""
 
 
-def newGame(style):
-    # Перезапуск игры
-    if style:
-        # Первый запуск игры
-        text = ['Игра', '', 'Нажмите любую кнопку, чтобы начать новую игру']
-    else:
-        # Поражение
-        text = ['Вы проиграли!', '', 'Нажмите любую кнопку, чтобы начать новую игру']
-    create(text)
-
-
-def create(text):
+def newGame():
     crGame()
     crWater()
     crObjects()
-    textScreen(text)
+    startScreen()
 
 
 def crGame():
@@ -65,11 +54,27 @@ def crObjects():
 def crEvils(allCount):
         for _ in range(allCount):
             crEvil()
-    
 
-def textScreen(text):
+    
+def startScreen():
+    image = pg.transform.scale(pg.image.load('data/new_game.png'), Game.SIZE)
+    Game.SCREEN.blit(image, (0, 0))
+
+    while True:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
+                exit()
+            elif event.type == pg.KEYDOWN or \
+                    event.type == pg.MOUSEBUTTONDOWN:
+                return
+        pg.display.flip()
+        my.clock.tick(Game.FPS)
+
+
+def docs(text):
     # Экран
-    fon = pg.transform.scale(pg.image.load('data/fon.jpg'), Game.SIZE)
+    fon = pg.transform.scale(pg.image.load('data/new_game.png'), Game.SIZE)
     Game.SCREEN.blit(fon, (0, 0))
     font = pg.font.Font(None, 30)
     text_coord = 50

@@ -10,6 +10,9 @@ from Bullets import FireBall
 
 
 class Evil(pg.sprite.Sprite):
+
+    volumeRun = Game.SOUND_VOLUME / 5
+    
     def __init__(self, x, y):
         super().__init__(my.evil_group, my.all_sprites)
         self.direction = 'R'
@@ -39,6 +42,8 @@ class Evil(pg.sprite.Sprite):
 
     def to_hurt(self, damage):
         # Получение урона
+        if my.sound:
+            self.soundDamage.play()
         self.health -= damage
         if self.health <= 0:
             self.death()
@@ -55,6 +60,8 @@ class Evil(pg.sprite.Sprite):
         # Смена кадра анимации
         if style == 'moving' or self.wait:
             if self.time == Game.TIME:
+                if my.sound_run:
+                    self.soundRun.play() 
                 self.image = self.imageRun[self.direction][self.step]
                 self.step = (
                     self.step + 1) % len(self.imageRun[self.direction])
@@ -62,6 +69,8 @@ class Evil(pg.sprite.Sprite):
             else:
                 self.time += 1
         elif style == 'fight':
+            if my.sound:
+                self.soundFight.play()
             self.image = self.imageAttack[self.direction]
             self.time = 0
 
@@ -95,6 +104,13 @@ class Pig(Evil):
                  'D': pg.image.load('data/pig/leftDied.png'),
                  }
 
+    soundRun = pg.mixer.Sound('data/sounds/pig/run.mp3')
+    soundRun.set_volume(Evil.volumeRun)
+    soundFight = pg.mixer.Sound('data/sounds/pig/fight.mp3')
+    soundFight.set_volume(Game.SOUND_VOLUME)
+    soundDamage = pg.mixer.Sound('data/sounds/pig/damage.mp3')
+    soundDamage.set_volume(Game.SOUND_VOLUME)
+    
     speed = 0.1 * Game.CELL_SIZE
     disRun = 10 * Game.CELL_SIZE
     disAttack = 2 * Game.CELL_SIZE
@@ -188,6 +204,13 @@ class Ghost(Evil):
                  'U': pg.image.load('data/ghost/leftDied.png'),
                  'D': pg.image.load('data/ghost/leftDied.png'),
                  }
+
+    soundRun = pg.mixer.Sound('data/sounds/ghost/run.mp3')
+    soundRun.set_volume(Evil.volumeRun)
+    soundFight = pg.mixer.Sound('data/sounds/ghost/fight.mp3')
+    soundFight.set_volume(Game.SOUND_VOLUME)
+    soundDamage = pg.mixer.Sound('data/sounds/ghost/damage.mp3')
+    soundDamage.set_volume(Game.SOUND_VOLUME)
 
     speed = 0.05 * Game.CELL_SIZE
     disRun = 10 * Game.CELL_SIZE

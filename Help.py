@@ -68,11 +68,12 @@ def crObject(name, allCount):
     while count != allCount:
         x = randint(-Game.LENGTH, Game.LENGTH)
         y = randint(-Game.LENGTH, Game.LENGTH)
-        obj = name(x, y)
-        if can(obj):
+        inv = Invisible(x * Game.CELL_SIZE, y * Game.CELL_SIZE)
+        obj1 = inv.search(None, my.player_group)
+        obj2 = inv.search(None, my.objects)
+        if not obj1 and not obj2:
+            obj = name(x, y)
             count += 1
-        else:
-            my.objects.remove(obj)
 
 
 def crEvil():
