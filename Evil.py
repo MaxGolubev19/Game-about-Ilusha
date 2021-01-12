@@ -1,21 +1,29 @@
 import pygame as pg
-from Start import my, cut
+import Game
+import My as my
+from Help import cut, crEvil
 from Objects import Water
+from Bullets import FireBall
+
+
+"""Монстры"""
 
 
 class Evil(pg.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(my.evil_group, my.all_sprites)
         self.direction = 'R'
-        self.image = self.imageDied[self.direction]
-        self.rect = self.image.get_rect().move(x * my.cellSize, y * my.cellSize)
         self.health = self.maxHealth
         self.wait = False
         self.step = 0
         self.time = 0
-
+        self.image = self.imageDied[self.direction]
+        self.rect = self.image.get_rect().move(x * Game.CELL_SIZE,
+                                               y * Game.CELL_SIZE)
+        
     def moving(self):
-        x, y = my.hPos
+        # Перемещение
+        x, y = Game.H_POS
         if y > self.rect.y:
             self.direction = 'D'
             self.rect.y += self.speed
@@ -30,20 +38,23 @@ class Evil(pg.sprite.Sprite):
             self.rect.x -= self.speed
 
     def to_hurt(self, damage):
+        # Получение урона
         self.health -= damage
         if self.health <= 0:
             self.death()
 
     def death(self):
+        # Смерть
         my.evil_group.remove(self)
         if self.__class__ != Ghost:
             my.objects.add(self)
         self.image = self.imageDied[self.direction]
-        my.crEvil()
+        crEvil()
 
     def setImage(self, style):
+        # Смена кадра анимации
         if style == 'moving' or self.wait:
-            if self.time == my.time:
+            if self.time == Game.TIME:
                 self.image = self.imageRun[self.direction][self.step]
                 self.step = (
                     self.step + 1) % len(self.imageRun[self.direction])
@@ -54,9 +65,18 @@ class Evil(pg.sprite.Sprite):
             self.image = self.imageAttack[self.direction]
             self.time = 0
 
+    def do(self):
+        pass
+
 
 class Pig(Evil):
-
+    
+    """
+    Свин:
+    - Колет героя рогом
+    - Разрушает всё на своём пути
+    """
+    
     imageRun = {'R': cut(pg.image.load('data/pig/rightRun.png')),
                 'L': cut(pg.image.load('data/pig/leftRun.png')),
                 'U': cut(pg.image.load('data/pig/leftRun.png')),
@@ -75,14 +95,15 @@ class Pig(Evil):
                  'D': pg.image.load('data/pig/leftDied.png'),
                  }
 
-    speed = 0.1 * my.cellSize
-    disRun = 10 * my.cellSize
-    disAttack = 2 * my.cellSize
-    disFight = my.cellSize
+    speed = 0.1 * Game.CELL_SIZE
+    disRun = 10 * Game.CELL_SIZE
+    disAttack = 2 * Game.CELL_SIZE
+    disFight = Game.CELL_SIZE
     maxHealth = 5
     power = 2
 
     def move(self):
+        # Действие
         if self.wait:
             self.setImage('moving')
             self.backMoving()
@@ -98,47 +119,57 @@ class Pig(Evil):
         obj = pg.sprite.spritecollideany(self, my.objects)
         if obj:
             if obj.__class__ != Water:
-                obj.trash()
+                obj.death()
             else:
                 self.death()
 
     def check(self, dis):
-        return (dis >= abs(self.rect.x - my.hPos[0]) and
-                dis >= abs(self.rect.y - my.hPos[1]))
+        # Проверка расстояния до героя
+        return (dis >= abs(self.rect.x - Game.H_POS[0]) and
+                dis >= abs(self.rect.y - Game.H_POS[1]))
 
     def attack(self):
-        x, y = my.hPos
-        if (abs(self.rect.x - x) < my.cellSize and
-                abs(self.rect.y - y) < my.cellSize):
+        # Атака
+        x, y = Game.H_POS
+        if (abs(self.rect.x - x) < Game.CELL_SIZE and
+                abs(self.rect.y - y) < Game.CELL_SIZE):
             return
 
         if y > self.rect.y:
-            self.rect.y += self.speed * 3
+            self.rect.y += self.speed * 4
         if y <= self.rect.y:
-            self.rect.y -= self.speed * 3
+            self.rect.y -= self.speed * 4
         if x > self.rect.x:
-            self.rect.x += self.speed * 3
+            self.rect.x += self.speed * 4
         if x <= self.rect.x:
-            self.rect.x -= self.speed * 3
+            self.rect.x -= self.speed * 4
 
     def fight(self):
+        # Удар
         my.player.removeLifes(Pig.power)
         self.wait = True
 
     def backMoving(self):
+        # Возвращение на изначальную позицию
         if self.direction == 'U':
-            self.rect.y += self.speed * 3
+            self.rect.y += self.speed * 4
         if self.direction == 'D':
-            self.rect.y -= self.speed * 3
+            self.rect.y -= self.speed * 4
         if self.direction == 'L':
-            self.rect.x += self.speed * 3
+            self.rect.x += self.speed * 4
         if self.direction == 'R':
-            self.rect.x -= self.speed * 3
+            self.rect.x -= self.speed * 4
         if not self.check(self.disAttack * 4):
             self.wait = False
 
 
 class Ghost(Evil):
+
+    """
+    Призрак:
+    - Запускает в героя файрбол
+    - Проходит сквозь любые препятствия 
+    """
 
     imageRun = {'R': cut(pg.image.load('data/ghost/right.png')),
                 'L': cut(pg.image.load('data/ghost/left.png')),
@@ -158,12 +189,13 @@ class Ghost(Evil):
                  'D': pg.image.load('data/ghost/leftDied.png'),
                  }
 
-    speed = 0.05 * my.cellSize
-    disRun = 10 * my.cellSize
-    disFight = 6 * my.cellSize
+    speed = 0.05 * Game.CELL_SIZE
+    disRun = 10 * Game.CELL_SIZE
+    disFight = 6 * Game.CELL_SIZE
     maxHealth = 10
 
     def move(self):
+        # Действие 
         if self.check(Ghost.disFight, 0):
             self.setImage('fight')
             self.fight()
@@ -172,65 +204,20 @@ class Ghost(Evil):
             self.moving()
 
     def check(self, dis1, dis2):
-        x, y = abs(self.rect.x - my.hPos[0]), abs(self.rect.y - my.hPos[1])
+        # Проверка расстояния до героя
+        x, y = abs(self.rect.x - Game.H_POS[0]), abs(self.rect.y - Game.H_POS[1])
         return (dis1 >= x and dis2 >= y or dis1 >= y and dis2 >= x)
 
     def fight(self):
+        # Запуск файрбола
         if not self.wait:
-            if my.hPos[1] > self.rect.y:
+            if Game.H_POS[1] > self.rect.y:
                 direction = 'D'
-            elif my.hPos[1] < self.rect.y:
+            elif Game.H_POS[1] < self.rect.y:
                 direction = 'U'
-            elif my.hPos[0] > self.rect.x:
+            elif Game.H_POS[0] > self.rect.x:
                 direction = 'R'
-            elif my.hPos[0] < self.rect.x:
+            elif Game.H_POS[0] < self.rect.x:
                 direction = 'L'
-            MagicBall(self, direction)
+            FireBall(self, direction)
             self.wait = True
-
-
-class MagicBall(pg.sprite.Sprite):
-
-    image = {'R': pg.image.load('data/fireball/right.png'),
-             'L': pg.image.load('data/fireball/left.png'),
-             'U': pg.image.load('data/fireball/up.png'),
-             'D': pg.image.load('data/fireball/down.png'),
-             }
-
-    def __init__(self, evil, direction):
-        super().__init__(my.evil_group, my.all_sprites)
-        self.direction = direction
-        self.speed = 0.2
-        self.power = 1
-        self.evil = evil
-
-        self.image = MagicBall.image[self.direction]
-        self.rect = self.image.get_rect().move(self.evil.rect.x, self.evil.rect.y)
-
-    def move(self):
-        if self.direction == 'U':
-            self.rect.y -= self.speed * my.cellSize
-        elif self.direction == 'D':
-            self.rect.y += self.speed * my.cellSize
-        elif self.direction == 'R':
-            self.rect.x += self.speed * my.cellSize
-        elif self.direction == 'L':
-            self.rect.x -= self.speed * my.cellSize
-
-        obj = pg.sprite.spritecollideany(self, my.player_group)
-        if obj is my.player:
-            self.to_hurt()
-            my.player.removeLifes(self.power)
-        elif obj is None:
-            if obj is None:
-                obj = pg.sprite.spritecollideany(self, my.objects)
-            if obj:
-                if obj.__class__ != Water:
-                    obj.trash()
-                self.to_hurt()
-                self.evil.wait = False
-
-    def to_hurt(self, damage=None):
-        self.evil.wait = False
-        my.evil_group.remove(self)
-        my.all_sprites.remove(self)
