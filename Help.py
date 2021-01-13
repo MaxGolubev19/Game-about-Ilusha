@@ -123,6 +123,7 @@ class Button(pg.sprite.Sprite):
     def __init__(self, style, group):
         super().__init__(group)
         self.style = style
+        self.first = True
         
         font = pg.font.Font(None, 40)
         text1 = font.render(Button.texts[0], True, 'yellow')
@@ -150,10 +151,15 @@ class Button(pg.sprite.Sprite):
 
     def check(self, pos):
         x, y = pos
-        return (self.x <= x <= self.x + self.w and
-                self.y <= y <= self.y + self.h)
+        chosen = (self.x <= x <= self.x + self.w and
+                 self.y <= y <= self.y + self.h)
+        if not chosen:
+            self.first = True
+        return chosen
+        
 
     def chosen(self):
+        self.first = False
         pg.draw.rect(Game.SCREEN, 'brown', self.rect)
 
 

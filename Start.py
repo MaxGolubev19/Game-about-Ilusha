@@ -63,6 +63,8 @@ def crEvils(allCount):
 def menu():
     # Создание меню
     image = pg.transform.scale(pg.image.load('data/new_game.png'), Game.SIZE)
+    click = pg.mixer.Sound('data/sounds/click.mp3')
+    click.set_volume(Game.SOUND_VOLUME)
     buttons = pg.sprite.Group()
     Button('Game', buttons)
     Button('Docs', buttons)
@@ -76,8 +78,10 @@ def menu():
         chosenBtn = None
         for btn in buttons:
             if btn.check(mousePos):
-                    chosenBtn = btn
+                chosenBtn = btn
         if chosenBtn:
+            if chosenBtn.first:
+                click.play()
             chosenBtn.chosen()
 
         for btn in buttons:
