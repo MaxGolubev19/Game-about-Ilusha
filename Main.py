@@ -1,13 +1,12 @@
 import pygame as pg
 import Game
 
-
 pg.init()
 
-
 from Help import refresh
-from Start import newGame
+from Start import newGame, docs
 import My as my
+
 
 """Игровой цикл"""
 
@@ -17,7 +16,7 @@ pg.display.set_icon(pg.image.load("data/icon.ico"))
 Game.SCREEN = pg.display.set_mode(Game.SIZE)
 pg.mixer.music.load('data/sounds/music.mp3')
 pg.mixer.music.set_volume(Game.MUSIC_VOLUME)
-pg.mixer.music.play()
+pg.mixer.music.play(-1)
 newGame()
 
 while True:
@@ -58,9 +57,16 @@ while True:
                 if event.key == pg.K_p:
                     my.sound_run = not my.sound_run
                     my.sound = my.sound_run
+                if event.key == pg.K_F1:
+                    if my.openDocs:
+                        docs()
+                    else:
+                        my.openDocs = True
         
         my.camera.update(my.player)
         for sprite in my.all_sprites:
             my.camera.apply(sprite)
+
+        my.score += 1
 
     newGame()

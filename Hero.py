@@ -7,13 +7,25 @@ from Help import cut, Invisible
 from Thing import Apple, Knife, Heart, God
 from Objects import Water
 from Evil import Ghost
-from Bullets import AppleBall
+from Bullets import AppleBall, FireBall
 
 
 """Герой"""
 
 
 class Hero(pg.sprite.Sprite):
+
+    """
+    Герой:
+    - Кидается яблоками
+    - С помощью кастетов ранит монстров, отбивает файрболы, ломает объекты
+    - С помощью сердца восстанавливает жизнь
+    - С помощью молитвы:
+        * Получает неприкосновенность на время действия молитвы
+        * Убивает последнего ранившего его призрака
+        * С вероятностью 10% восстанавливает всё здоровье    
+    """
+    
     image = {'R': pg.image.load('data/hero/right.png'),
              'L': pg.image.load('data/hero/left.png'),
              'U': pg.image.load('data/hero/up.png'),
@@ -77,6 +89,7 @@ class Hero(pg.sprite.Sprite):
 
     def addLife(self):
         # Добавление жизни
+        print(f"Hero: +1 hp")
         if self.health < Game.MAX_HEALTH:
             self.lifes.append(Life(self, self.health * 30))
             self.health += 1
@@ -84,6 +97,9 @@ class Hero(pg.sprite.Sprite):
 
     def removeLifes(self, damage):
         # Удаление жизни
+        if self.god:
+            return 0
+        print(f"Hero: -{damage} hp")
         if my.sound:
             Hero.soundDamage.play()
         damage = min(self.health, damage)
@@ -146,6 +162,7 @@ class Hero(pg.sprite.Sprite):
                 self.god_time += 1
                 if self.god_time == Game.TIME * 7:
                     self.god = False
+                    self.endPrayer()
             else:
                 self.time += 1
         elif fight:
@@ -177,7 +194,7 @@ class Hero(pg.sprite.Sprite):
             Hero.soundRun.set_volume(0)
         inv = Invisible(self.x, self.y)
         obj = inv.search(self.direction, my.objects)
-        print(obj)
+        print(f"Hero: used {type(obj).__name__}")
         if obj:
             obj.do()
 
@@ -192,48 +209,61 @@ class Hero(pg.sprite.Sprite):
         # Использование предмета из инвентаря
         if not self.hand:
             return 0
+        print(f"Hero: used {type(self.hand).__name__}")
         if self.hand.__class__ is Apple:
             if my.sound:
                 Hero.soundApple.play()
             my.inventory.remove(self.hand)
             AppleBall(self.direction)
+            my.score += 100
         elif self.hand.__class__ is Knife:
             if my.sound:
                 Hero.soundAttack.play()
             self.fight(self.hand.power)
             if randint(1, 10) == 1:
                 my.inventory.remove(self.hand)
+            my.score += self.hand.power * 100
         elif self.hand.__class__ is Heart:
             if my.sound:
                 Hero.soundLife.play()
             if self.addLife():
                 my.inventory.remove(self.hand)
+            my.score += 400
         elif self.hand.__class__ is God:
             if my.sound:
                 Hero.soundGod.play()
             my.inventory.remove(self.hand)
             self.prayer()
+            my.score += 600
 
     def fight(self, power):
         # Атака
         self.setImage(True)
         inv = Invisible(self.x, self.y)
         obj = inv.search(self.direction, my.evil_group)
-        
         if obj:
-            obj.to_hurt(power)
+            print(f"Hero: attacked {type(obj).__name__}")
+            if obj.__class__ == FireBall:
+                self.addLife()
+                obj.back()
+            else:
+                obj.to_hurt(power)
         else:
             obj = inv.check(my.objects)
             if obj and obj.__class__ != Water:
+                print(f"Hero: broke {type(obj).__name__}")
                 obj.death()
 
     def prayer(self):
+        print(f"Hero: praying")
         if my.sound_run:
             Hero.soundGod.play() 
         self.step = 0
         self.time = 0
         self.god = True
         self.god_time = 0
+
+    def endPrayer(self):
         if self.ghost:
             self.ghost.death()
             self.ghost = None

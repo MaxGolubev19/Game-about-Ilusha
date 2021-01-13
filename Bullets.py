@@ -32,7 +32,10 @@ class AppleBall(pg.sprite.Sprite):
         # Проверка на препятствие 
         obj = pg.sprite.spritecollideany(self, my.evil_group)
         if obj:
-            obj.to_hurt(self.power)
+            if obj.__class__ == FireBall:
+                obj.death()
+            else:
+                obj.to_hurt(self.power)
         else:
             obj = pg.sprite.spritecollideany(self, my.objects)
         if obj:
@@ -75,10 +78,12 @@ class FireBall(pg.sprite.Sprite):
 
         # Проверка на препятствие 
         obj = pg.sprite.spritecollideany(self, my.player_group)
-        if obj is my.player:
+        if obj is my.player and self.evil != my.player:
             self.death()
             my.player.removeLifes(self.power)
             my.player.ghost = self.evil
+        elif obj.__class__ == AppleBall:
+            obj.death()
         else:
             obj = pg.sprite.spritecollideany(self, my.objects)
             if obj:
@@ -92,8 +97,10 @@ class FireBall(pg.sprite.Sprite):
                         obj.to_hurt(self.power)
                         self.death()
 
+    def back(self):
+        FireBall(my.player, my.player.direction)
+
     def death(self, damage=None):
         # Уничтожение файрбола
-        self.evil.wait = False
         my.evil_group.remove(self)
         my.all_sprites.remove(self)

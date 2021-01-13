@@ -1,7 +1,7 @@
 import pygame as pg
 import Game
 import My as my
-from Help import cut, crEvil
+from Help import cut, crEvil, crFirework
 from Objects import Water
 from Bullets import FireBall
 
@@ -12,17 +12,20 @@ from Bullets import FireBall
 class Evil(pg.sprite.Sprite):
 
     volumeRun = Game.SOUND_VOLUME / 5
+    maxWait = Game.TIME * 10
     
     def __init__(self, x, y):
         super().__init__(my.evil_group, my.all_sprites)
         self.direction = 'R'
         self.health = self.maxHealth
-        self.wait = False
+        self.wait = Evil.maxWait
         self.step = 0
         self.time = 0
         self.image = self.imageDied[self.direction]
         self.rect = self.image.get_rect().move(x * Game.CELL_SIZE,
                                                y * Game.CELL_SIZE)
+        self.firework = None
+        self.died = False
         
     def moving(self):
         # Перемещение
@@ -42,19 +45,12 @@ class Evil(pg.sprite.Sprite):
 
     def to_hurt(self, damage):
         # Получение урона
+        print(f"{type(self).__name__}: -{damage} hp")
         if my.sound:
             self.soundDamage.play()
         self.health -= damage
         if self.health <= 0:
             self.death()
-
-    def death(self):
-        # Смерть
-        my.evil_group.remove(self)
-        if self.__class__ != Ghost:
-            my.objects.add(self)
-        self.image = self.imageDied[self.direction]
-        crEvil()
 
     def setImage(self, style):
         # Смена кадра анимации
@@ -120,7 +116,7 @@ class Pig(Evil):
 
     def move(self):
         # Действие
-        if self.wait:
+        if not self.wait:
             self.setImage('moving')
             self.backMoving()
         elif self.check(Pig.disFight):
@@ -135,8 +131,10 @@ class Pig(Evil):
         obj = pg.sprite.spritecollideany(self, my.objects)
         if obj:
             if obj.__class__ != Water:
+                print(f"Pig: broke {type(obj).__name__}")
                 obj.death()
             else:
+                print(f"Pig: died")
                 self.death()
 
     def check(self, dis):
@@ -163,7 +161,7 @@ class Pig(Evil):
     def fight(self):
         # Удар
         my.player.removeLifes(Pig.power)
-        self.wait = True
+        self.wait = 0
 
     def backMoving(self):
         # Возвращение на изначальную позицию
@@ -176,15 +174,25 @@ class Pig(Evil):
         if self.direction == 'R':
             self.rect.x -= self.speed * 4
         if not self.check(self.disAttack * 4):
-            self.wait = False
+            self.wait = Evil.maxWait
 
+    def death(self):
+        # Смерть
+        print(f"Pig: died")
+        my.score += 1000
+        my.evil_group.remove(self)
+        my.objects.add(self)
+        self.image = self.imageDied[self.direction]
+        crEvil()
+        
 
 class Ghost(Evil):
 
     """
     Призрак:
     - Запускает в героя файрбол
-    - Проходит сквозь любые препятствия 
+    - Проходит сквозь любые препятствия
+    - Последний призрак, ранивший героя, погибает во время молитвы
     """
 
     imageRun = {'R': cut(pg.image.load('data/ghost/right.png')),
@@ -218,11 +226,18 @@ class Ghost(Evil):
     maxHealth = 10
 
     def move(self):
-        # Действие 
-        if self.check(Ghost.disFight, 0):
+        # Действие
+        if self.died:
+            if self.firework:
+                for fire in self.firework:
+                    fire.update(self.firework)
+            else:
+                my.evil_group.remove(self)                 
+        elif self.check(Ghost.disFight, 0):
             self.setImage('fight')
             self.fight()
         elif self.check(Ghost.disRun, Ghost.disRun):
+            self.wait = Evil.maxWait
             self.setImage('moving')
             self.moving()
 
@@ -233,7 +248,8 @@ class Ghost(Evil):
 
     def fight(self):
         # Запуск файрбола
-        if not self.wait:
+        if self.wait == Evil.maxWait:
+            print(f"Ghost: created FireBall")
             if Game.H_POS[1] > self.rect.y:
                 direction = 'D'
             elif Game.H_POS[1] < self.rect.y:
@@ -242,5 +258,30 @@ class Ghost(Evil):
                 direction = 'R'
             elif Game.H_POS[0] < self.rect.x:
                 direction = 'L'
+            else:
+                direction = 'A'
             FireBall(self, direction)
-            self.wait = True
+            self.wait = 0
+        else:
+            self.wait += 1
+
+    def death(self):
+        # Смерть
+        print(f"Ghost: died")
+        my.score += 1500
+        if self.died:
+            return
+        self.image = self.imageDied[self.direction]
+        pos = (self.rect.x + Game.CELL_SIZE / 2,
+               self.rect.y + Game.CELL_SIZE / 2)
+        self.firework = crFirework(pos)
+        self.died = True
+        crEvil()
+        
+            
+        
+
+
+
+
+        

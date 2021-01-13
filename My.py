@@ -12,3 +12,5 @@ running = None
 music = True
 sound = False
 sound_run = False
+score = None
+openDocs = True

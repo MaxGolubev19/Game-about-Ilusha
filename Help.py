@@ -90,12 +90,71 @@ def can(obj):
     return len(pg.sprite.spritecollide(obj, my.objects, False)) == 1
 
 
+class Particle(pg.sprite.Sprite):
+    magic = [pg.image.load('data/ghost/magic.png')]
+    for scale in (5, 10, 20):
+        magic.append(pg.transform.scale(magic[0], (scale, scale)))
+
+    def __init__(self, pos, dx, dy):
+        super().__init__(my.all_sprites)
+        self.image = choice(Particle.magic)
+        self.rect = self.image.get_rect().move(pos)
+        self.velocity = [dx, dy]
+        self.board = (pos[0] - Game.CELL_SIZE, pos[1] - Game.CELL_SIZE,
+                      2 * Game.CELL_SIZE, 2 * Game.CELL_SIZE)
+
+    def update(self, firework):
+        self.rect.x += self.velocity[0]
+        self.rect.y += self.velocity[1]
+        if not self.rect.colliderect(self.board):
+            firework.remove(self)
+            self.kill()
+        
+
+def crFirework(position):
+    count = 20
+    numbers = [range(-2, 0), range(1, 3)]
+    return [Particle(position, choice(choice(numbers)),
+                    choice(choice(numbers))) for _ in range(count)]
 
 
+class Button(pg.sprite.Sprite):
+    texts = ["Новая игра", "Инструкция", "Выxод"]
+    def __init__(self, style, group):
+        super().__init__(group)
+        self.style = style
+        
+        font = pg.font.Font(None, 40)
+        text1 = font.render(Button.texts[0], True, 'yellow')
+        text2 = font.render(Button.texts[1], True, 'yellow')
+        text3 = font.render(Button.texts[2], True, 'yellow')
+        self.h = text1.get_height()
+        self.w = max(text1.get_width(), text2.get_width(), text3.get_width())
+        if self.style == 'Game':
+            self.text = text1
+            self.x = self.w / 2 - self.text.get_width() / 2 + 40
+            self.y = Game.H - 180
+        elif self.style == 'Docs':
+            self.text = text2
+            self.x = self.w / 2 - self.text.get_width() / 2 + 40
+            self.y = Game.H - 125
+        elif self.style == 'Exit':
+            self.text = text3
+            self.x = self.w / 2 - self.text.get_width() / 2 + 40
+            self.y = Game.H - 70
+        self.rect = (30, self.y - 10, self.w + 20, self.h + 20)
 
+    def draw(self):
+        Game.SCREEN.blit(self.text, (self.x, self.y))
+        pg.draw.rect(Game.SCREEN, 'yellow', self.rect, 3)
 
+    def check(self, pos):
+        x, y = pos
+        return (self.x <= x <= self.x + self.w and
+                self.y <= y <= self.y + self.h)
 
-
+    def chosen(self):
+        pg.draw.rect(Game.SCREEN, 'brown', self.rect)
 
 
 
