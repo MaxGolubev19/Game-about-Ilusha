@@ -13,7 +13,7 @@ class AppleBall(pg.sprite.Sprite):
     def __init__(self, direction):
         super().__init__(my.player_group, my.all_sprites)
         self.direction = direction
-        self.speed = 0.2
+        self.speed = 0.3
         self.power = 1
         self.image = self.image
         self.rect = self.image.get_rect().move(Game.H_POS)
@@ -58,7 +58,7 @@ class FireBall(pg.sprite.Sprite):
     def __init__(self, evil, direction):
         super().__init__(my.evil_group, my.all_sprites)
         self.direction = direction
-        self.speed = 0.4 * Game.CELL_SIZE
+        self.speed = 0.3 * Game.CELL_SIZE
         self.power = 1
         self.evil = evil
         self.image = FireBall.image[self.direction]

@@ -65,8 +65,6 @@ class Evil(pg.sprite.Sprite):
             else:
                 self.time += 1
         elif style == 'fight':
-            if my.sound:
-                self.soundFight.play()
             self.image = self.imageAttack[self.direction]
             self.time = 0
 
@@ -124,6 +122,8 @@ class Pig(Evil):
             self.fight()
         elif self.check(Pig.disAttack):
             self.setImage('fight')
+            if my.sound:
+                self.soundFight.play()
             self.attack()
         elif self.check(Pig.disRun):
             self.setImage('moving')
