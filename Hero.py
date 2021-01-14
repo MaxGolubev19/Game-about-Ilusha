@@ -89,8 +89,8 @@ class Hero(pg.sprite.Sprite):
 
     def addLife(self):
         # Добавление жизни
-        print(f"Hero: +1 hp")
         if self.health < Game.MAX_HEALTH:
+            print(f"Hero: +1 hp")
             self.lifes.append(Life(self, self.health * 30))
             self.health += 1
             return True
