@@ -58,7 +58,7 @@ class FireBall(pg.sprite.Sprite):
     def __init__(self, evil, direction):
         super().__init__(my.evil_group, my.all_sprites)
         self.direction = direction
-        self.speed = 0.2
+        self.speed = 0.4 * Game.CELL_SIZE
         self.power = 1
         self.evil = evil
         self.image = FireBall.image[self.direction]
@@ -68,13 +68,13 @@ class FireBall(pg.sprite.Sprite):
     def move(self):
         # Перемещение снаряда
         if self.direction == 'U':
-            self.rect.y -= self.speed * Game.CELL_SIZE
+            self.rect.y -= self.speed
         elif self.direction == 'D':
-            self.rect.y += self.speed * Game.CELL_SIZE
+            self.rect.y += self.speed
         elif self.direction == 'R':
-            self.rect.x += self.speed * Game.CELL_SIZE
+            self.rect.x += self.speed
         elif self.direction == 'L':
-            self.rect.x -= self.speed * Game.CELL_SIZE
+            self.rect.x -= self.speed
 
         # Проверка на препятствие 
         obj = pg.sprite.spritecollideany(self, my.player_group)

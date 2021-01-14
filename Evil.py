@@ -109,7 +109,7 @@ class Pig(Evil):
     
     speed = 0.1 * Game.CELL_SIZE
     disRun = 10 * Game.CELL_SIZE
-    disAttack = 2 * Game.CELL_SIZE
+    disAttack = 3 * Game.CELL_SIZE
     disFight = Game.CELL_SIZE
     maxHealth = 5
     power = 2
@@ -173,7 +173,7 @@ class Pig(Evil):
             self.rect.x += self.speed * 4
         if self.direction == 'R':
             self.rect.x -= self.speed * 4
-        if not self.check(self.disAttack * 4):
+        if not self.check(self.disAttack * 3):
             self.wait = Evil.maxWait
 
     def death(self):
